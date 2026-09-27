@@ -3,7 +3,7 @@
   <name>Immersive Raid Compression</name>
   <author>lyj</author>
   <packageId>langyejia.immersiveraidcompression</packageId>
-  <modVersion>0.2.0</modVersion>
+  <modVersion>0.3.0</modVersion>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
@@ -18,7 +18,7 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Reduces oversized late-game human and mechanoid raids by replacing groups of low-tier enemies with fewer, stronger vanilla pawn kinds. It does not add hidden combat stat buffs.
+  <description>Reduces oversized late-game human, mechanoid, and manhunter threats by replacing groups of low-tier enemies with fewer, stronger vanilla or official-DLC pawn kinds. An in-game audit page shows every before/after composition and safe fallback. It does not add hidden combat stat buffs.
 
-通过使用派系原本拥有的高阶人类兵种或机械体型号，减少后期超大规模袭击的单位数量。不添加隐藏战斗属性 Buff。</description>
+通过使用派系原本拥有的高阶人类兵种、机械体型号或更高价值的官方动物，减少后期超大规模威胁的单位数量。游戏内记录页面会显示每次压缩前后的详细构成与安全回退原因；不添加隐藏战斗属性 Buff。</description>
 </ModMetaData>

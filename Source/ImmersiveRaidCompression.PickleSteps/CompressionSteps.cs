@@ -1,3 +1,4 @@
+using System.Linq;
 using RimWorks.Pickle;
 using RimWorld;
 using Verse;
@@ -12,6 +13,9 @@ namespace ImmersiveRaidCompression.PickleTests
         {
             CompressionTelemetry.Reset();
             CompressionMod.Settings.verboseLogging = true;
+            CompressionMod.Settings.enableManhunterPacks = true;
+            CompressionMod.Settings.minimumManhunterPoints = 1000f;
+            CompressionMod.Settings.manhunterSoftPawnCap = 30;
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -56,8 +60,40 @@ namespace ImmersiveRaidCompression.PickleTests
                 + " to " + snapshot.FinalBossCount + ".");
         }
 
-        [Then("the last raid compression reduced the pawn count and retained at least {int} percent of vanilla kind cost")]
-        public void LastCompressionReducedCountAndRetainedCost(PickleContext context, int minimumPercent)
+        [Then("compression history contains detailed before and after compositions")]
+        public void HistoryContainsCompositions(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful compression was recorded.");
+            context.Assert(CompressionTelemetry.History.Count > 0, "Compression history is empty.");
+            context.Assert(
+                !string.IsNullOrWhiteSpace(snapshot.OriginalComposition),
+                "Original composition was not recorded.");
+            context.Assert(
+                !string.IsNullOrWhiteSpace(snapshot.FinalComposition),
+                "Final composition was not recorded.");
+        }
+
+        [When("I open the compression history window")]
+        public void OpenCompressionHistory(PickleContext context)
+        {
+            context.Assert(Find.WindowStack != null, "The game window stack is unavailable.");
+            Find.WindowStack.Add(new CompressionHistoryWindow());
+        }
+
+        [Then("the compression history window is open")]
+        public void CompressionHistoryIsOpen(PickleContext context)
+        {
+            context.Assert(
+                Find.WindowStack.Windows.Any(window => window is CompressionHistoryWindow),
+                "The compression history window was not added to the game window stack.");
+        }
+
+        [Then("the last raid compression reduced the pawn count and retained between {int} and {int} percent of vanilla kind cost")]
+        public void LastCompressionReducedCountAndRetainedCost(
+            PickleContext context,
+            int minimumPercent,
+            int maximumPercent)
         {
             CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
             context.Assert(snapshot != null, "No successful raid compression was recorded.");
@@ -72,6 +108,10 @@ namespace ImmersiveRaidCompression.PickleTests
                 retainedPercent + 0.001f >= minimumPercent,
                 "Compression retained only " + retainedPercent.ToString("F1")
                 + "% of vanilla kind cost; expected at least " + minimumPercent + "%.");
+            context.Assert(
+                retainedPercent <= maximumPercent + 0.001f,
+                "Compression inflated vanilla kind cost to " + retainedPercent.ToString("F1")
+                + "%; expected at most " + maximumPercent + "%.");
         }
     }
 }

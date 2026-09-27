@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
+using Verse;
 
 namespace ImmersiveRaidCompression
 {
@@ -36,6 +37,15 @@ namespace ImmersiveRaidCompression
 
             if (!result.Changed)
             {
+                string composition = CompressionTelemetry.DescribeComposition(original);
+                CompressionTelemetry.RecordSkipped(
+                    plan.Policy.ThreatType,
+                    groupParms.faction.Name,
+                    original.Count,
+                    result.OriginalCost,
+                    pointsTotal,
+                    composition,
+                    "IRC_ReasonNoPromotion".Translate());
                 if (CompressionMod.Settings.verboseLogging)
                 {
                     Verse.Log.Message(
@@ -53,6 +63,8 @@ namespace ImmersiveRaidCompression
             }
 
             __result = result.Options;
+            string originalComposition = CompressionTelemetry.DescribeComposition(original);
+            string finalComposition = CompressionTelemetry.DescribeComposition(result.Options);
             CompressionTelemetry.Record(
                 plan.Policy.ThreatType,
                 groupParms.faction.Name,
@@ -62,7 +74,9 @@ namespace ImmersiveRaidCompression
                 result.FinalCost,
                 pointsTotal,
                 original.Count(option => option.Option.kind.isBoss),
-                result.Options.Count(option => option.Option.kind.isBoss));
+                result.Options.Count(option => option.Option.kind.isBoss),
+                originalComposition,
+                finalComposition);
             Verse.Log.Message(
                 "[Immersive Raid Compression] " + groupParms.faction.Name
                 + " (" + plan.Policy.ThreatType + ")"
