@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>ImmersiveRaidCompression</AssemblyName>
+    <RootNamespace>ImmersiveRaidCompression</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\..\Assemblies\</OutputPath>
+    <DebugType>portable</DebugType>
+    <RimWorldDir Condition="'$(RimWorldDir)' == ''">$(RIMWORLD_DIR)</RimWorldDir>
+    <HarmonyDir Condition="'$(HarmonyDir)' == ''">$(HARMONY_DIR)</HarmonyDir>
+  </PropertyGroup>
+  <Import Project="..\..\Directory.Build.props.user" Condition="Exists('..\..\Directory.Build.props.user')" />
+  <Target Name="ValidateGamePaths" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(RimWorldDir)' == ''" Text="Set RIMWORLD_DIR or RimWorldDir to the RimWorld installation directory." />
+    <Error Condition="'$(HarmonyDir)' == ''" Text="Set HARMONY_DIR or HarmonyDir to the Harmony mod directory." />
+  </Target>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(HarmonyDir)\Current\Assemblies\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

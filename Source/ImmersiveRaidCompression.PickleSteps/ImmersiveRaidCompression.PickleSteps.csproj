@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>ImmersiveRaidCompression.PickleSteps</AssemblyName>
+    <RootNamespace>ImmersiveRaidCompression.PickleTests</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>..\..\Pickle\Assemblies\</OutputPath>
+    <RimWorldDir Condition="'$(RimWorldDir)' == ''">$(RIMWORLD_DIR)</RimWorldDir>
+    <PickleDir Condition="'$(PickleDir)' == ''">$(PICKLE_DIR)</PickleDir>
+  </PropertyGroup>
+  <Import Project="..\..\Directory.Build.props.user" Condition="Exists('..\..\Directory.Build.props.user')" />
+  <Target Name="ValidateTestPaths" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(RimWorldDir)' == ''" Text="Set RIMWORLD_DIR or RimWorldDir to the RimWorld installation directory." />
+    <Error Condition="'$(PickleDir)' == ''" Text="Set PICKLE_DIR or PickleDir to the Rimworld-Pickle directory." />
+  </Target>
+  <ItemGroup>
+    <ProjectReference Include="..\ImmersiveRaidCompression\ImmersiveRaidCompression.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(RimWorldDir)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RimWorks.Pickle">
+      <HintPath>$(PickleDir)\Assemblies\RimWorks.Pickle.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

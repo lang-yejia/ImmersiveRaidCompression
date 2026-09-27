@@ -1,0 +1,8 @@
+Source/**/bin/
+Source/**/obj/
+Directory.Build.props.user
+*.user
+*.suo
+.vs/
+.idea/
+
