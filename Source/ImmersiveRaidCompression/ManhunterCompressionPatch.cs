@@ -199,7 +199,10 @@ namespace ImmersiveRaidCompression
                 0,
                 0,
                 originalComposition,
-                replacement.Kind.LabelCap + " ×" + replacement.Count);
+                replacement.Kind.LabelCap + " ×" + replacement.Count,
+                ThreatIdentity.AnimalIdentitySummary(originalKind, replacement.Kind),
+                originalKind.defName,
+                replacement.Kind.defName);
 
             Log.Message(
                 "[Immersive Raid Compression] manhunter pack: "
@@ -268,13 +271,29 @@ namespace ImmersiveRaidCompression
 
             foreach (PawnKindDef kind in biomeAnimals)
             {
-                if (kind == originalKind || kind.combatPower <= originalKind.combatPower)
+                if (kind == originalKind)
                 {
                     continue;
                 }
 
                 try
                 {
+                    if (!ThreatIdentity.AnimalKindsAreCompatible(
+                            originalKind,
+                            kind,
+                            out string identityReason))
+                    {
+                        if (CompressionMod.Settings?.verboseLogging == true
+                            && kind.combatPower > originalKind.combatPower)
+                        {
+                            Log.Message(
+                                "[Immersive Raid Compression] rejected animal candidate "
+                                + kind.defName + " to preserve threat identity ("
+                                + identityReason + ").");
+                        }
+                        continue;
+                    }
+
                     bool canArriveManhunter = CanArriveManhunter(kind);
                     bool pollutionEligible = !polluted || CanArriveWithPollution(kind, map, true);
                     if (!canArriveManhunter || !pollutionEligible)

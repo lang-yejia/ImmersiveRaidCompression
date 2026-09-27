@@ -5,7 +5,7 @@
   <IRC_EnableMechanoidRaids>Compress oversized mechanoid raids</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>Promotes mechanoid models within the same vanilla group while preserving breachers and excluding mech bosses as budget fillers.</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnableManhunterPacks>Compress oversized manhunter packs</IRC_EnableManhunterPacks>
-  <IRC_EnableManhunterPacksDesc>Prefers a stronger local species, then falls back to a manhunter-eligible migrating animal from Core or an official DLC. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
+  <IRC_EnableManhunterPacksDesc>Only uses a stronger vanilla animal with compatible behavior, speed, body size, armor, and abilities. Keeps the vanilla pack when none exists. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>Mechanoid soft pawn cap: {0}</IRC_MechanoidSoftPawnCap>
@@ -24,6 +24,10 @@
   <IRC_OriginalComposition>Original: {0}</IRC_OriginalComposition>
   <IRC_FinalComposition>Final: {0}</IRC_FinalComposition>
   <IRC_HistoryReason>Reason: {0}</IRC_HistoryReason>
+  <IRC_HistoryIdentity>Tactical identity: {0}</IRC_HistoryIdentity>
+  <IRC_IdentityRolesPreserved>All original roles and protected units remain, and major role ratios passed validation.</IRC_IdentityRolesPreserved>
+  <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
+  <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>
   <IRC_ReasonNoAnimal>No higher-value manhunter species from Core or an official DLC is legal under the current conditions.</IRC_ReasonNoAnimal>
   <IRC_ThreatHumanRaid>Human raid</IRC_ThreatHumanRaid>

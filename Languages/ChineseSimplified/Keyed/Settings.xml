@@ -5,7 +5,7 @@
   <IRC_EnableMechanoidRaids>压缩规模过大的机械族袭击</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>在同一原版编队中晋升机械体型号，保留破墙单位并禁止用机械领主填充预算。</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnableManhunterPacks>压缩规模过大的食人动物群</IRC_EnableManhunterPacks>
-  <IRC_EnableManhunterPacksDesc>优先使用当前生物群系的高价值物种；若本地没有候选，则使用符合食人规则的原版或官方 DLC 迁徙动物。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
+  <IRC_EnableManhunterPacksDesc>只允许使用行为、速度、体型、护甲和特殊能力相近的高价值原版动物；没有兼容候选时保持原版。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>机械体软上限：{0}</IRC_MechanoidSoftPawnCap>
@@ -24,6 +24,10 @@
   <IRC_OriginalComposition>原始构成：{0}</IRC_OriginalComposition>
   <IRC_FinalComposition>最终构成：{0}</IRC_FinalComposition>
   <IRC_HistoryReason>原因：{0}</IRC_HistoryReason>
+  <IRC_HistoryIdentity>战术身份：{0}</IRC_HistoryIdentity>
+  <IRC_IdentityRolesPreserved>所有原有职责及受保护单位均已保留，主要职责比例通过检查。</IRC_IdentityRolesPreserved>
+  <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
+  <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>
   <IRC_ReasonNoAnimal>原版及官方 DLC 中没有价值更高且符合当前条件的食人动物物种。</IRC_ReasonNoAnimal>
   <IRC_ThreatHumanRaid>人类袭击</IRC_ThreatHumanRaid>

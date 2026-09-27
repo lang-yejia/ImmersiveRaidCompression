@@ -76,7 +76,8 @@ namespace ImmersiveRaidCompression
                 original.Count(option => option.Option.kind.isBoss),
                 result.Options.Count(option => option.Option.kind.isBoss),
                 originalComposition,
-                finalComposition);
+                finalComposition,
+                "IRC_IdentityRolesPreserved".Translate());
             Verse.Log.Message(
                 "[Immersive Raid Compression] " + groupParms.faction.Name
                 + " (" + plan.Policy.ThreatType + ")"

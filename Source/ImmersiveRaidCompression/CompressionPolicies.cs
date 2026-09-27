@@ -42,29 +42,66 @@ namespace ImmersiveRaidCompression
 
         public string RoleFor(PawnGenOptionWithXenotype option)
         {
-            List<string> tags = option.Option.kind.weaponTags;
-            if (tags != null)
+            PawnKindDef kind = option.Option.kind;
+            List<string> tags = kind.weaponTags;
+            string descriptor = (kind.defName + " " + string.Join(" ", tags ?? new List<string>()))
+                .ToLowerInvariant();
+            string role;
+            if (ContainsAny(descriptor, "shield"))
+            {
+                role = "shield-melee";
+            }
+            else if (ContainsAny(descriptor, "sniper", "marksman", "longrange"))
+            {
+                role = "long-range";
+            }
+            else if (ContainsAny(descriptor, "grenad", "bomb", "launcher"))
+            {
+                role = "explosive";
+            }
+            else if (ContainsAny(descriptor, "molotov", "incendiary", "flame", "fire", "tox"))
+            {
+                role = "area-denial";
+            }
+            else if (ContainsAny(descriptor, "heavy", "shotgun"))
+            {
+                role = "heavy-ranged";
+            }
+            else if (tags != null)
             {
                 bool melee = tags.Any(tag => tag.IndexOf("Melee", StringComparison.OrdinalIgnoreCase) >= 0);
                 bool ranged = tags.Any(tag => tag.IndexOf("Ranged", StringComparison.OrdinalIgnoreCase) >= 0
                     || tag.IndexOf("Gun", StringComparison.OrdinalIgnoreCase) >= 0);
                 if (melee && ranged)
                 {
-                    return "mixed";
+                    role = "mixed";
                 }
-
-                if (melee)
+                else if (melee)
                 {
-                    return "melee";
+                    role = "melee";
                 }
-
-                if (ranged)
+                else if (ranged)
                 {
-                    return "ranged";
+                    role = "ranged";
+                }
+                else
+                {
+                    role = "unclassified";
                 }
             }
+            else
+            {
+                role = "unclassified";
+            }
 
-            return "unclassified";
+            // Xenotypes can carry fire breath, toxic attacks, unusual durability, or
+            // other mechanics not represented by the PawnKind's weapon tags.
+            return role + "|xenotype:" + (option.Xenotype?.defName ?? "none");
+        }
+
+        private static bool ContainsAny(string value, params string[] fragments)
+        {
+            return fragments.Any(value.Contains);
         }
     }
 
@@ -100,9 +137,24 @@ namespace ImmersiveRaidCompression
                 return "fire";
             }
 
+            if (IsNamed(kind, "Tesseron"))
+            {
+                return "beam-fire";
+            }
+
             if (IsNamed(kind, "Legionary") || IsNamed(kind, "Centurion"))
             {
                 return "shield-support";
+            }
+
+            if (IsNamed(kind, "Lancer") || IsNamed(kind, "Pikeman"))
+            {
+                return "long-range";
+            }
+
+            if (IsNamed(kind, "Centipede") || IsNamed(kind, "Gunner"))
+            {
+                return "heavy-ranged";
             }
 
             if (kind.weaponTags != null && kind.weaponTags.Count > 0)

@@ -70,7 +70,10 @@ namespace ImmersiveRaidCompression
             float reasonHeight = record.Successful
                 ? 0f
                 : Text.CalcHeight("IRC_HistoryReason".Translate(record.Reason), textWidth) + 4f;
-            return 92f + originalHeight + finalHeight + reasonHeight;
+            float identityHeight = Text.CalcHeight(
+                "IRC_HistoryIdentity".Translate(record.IdentitySummary),
+                textWidth) + 4f;
+            return 92f + originalHeight + finalHeight + identityHeight + reasonHeight;
         }
 
         private static void DrawRecord(Rect rect, CompressionSnapshot record)
@@ -115,6 +118,11 @@ namespace ImmersiveRaidCompression
             float finalHeight = Text.CalcHeight(final, inner.width);
             Widgets.Label(new Rect(inner.x, y, inner.width, finalHeight), final);
             y += finalHeight + 3f;
+
+            string identity = "IRC_HistoryIdentity".Translate(record.IdentitySummary);
+            float identityHeight = Text.CalcHeight(identity, inner.width);
+            Widgets.Label(new Rect(inner.x, y, inner.width, identityHeight), identity);
+            y += identityHeight + 3f;
 
             if (!record.Successful)
             {

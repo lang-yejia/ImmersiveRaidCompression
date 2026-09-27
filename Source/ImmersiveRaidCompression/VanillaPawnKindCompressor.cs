@@ -65,6 +65,26 @@ namespace ImmersiveRaidCompression
                     false);
             }
 
+            if (changed && !ThreatIdentity.PawnGroupIdentityIsPreserved(
+                    original,
+                    chosen,
+                    policy,
+                    out string identityFailure))
+            {
+                if (CompressionMod.Settings?.verboseLogging == true)
+                {
+                    Verse.Log.Message(
+                        "[Immersive Raid Compression] rejected a numerically valid compression "
+                        + "because it changed threat identity (" + identityFailure + ").");
+                }
+
+                return new CompressionResult(
+                    new List<PawnGenOptionWithXenotype>(original),
+                    originalCost,
+                    originalCost,
+                    false);
+            }
+
             return new CompressionResult(chosen, originalCost, finalCost, changed);
         }
 

@@ -74,6 +74,48 @@ namespace ImmersiveRaidCompression.PickleTests
                 "Final composition was not recorded.");
         }
 
+        [Then("the last compression preserved its tactical identity")]
+        public void TacticalIdentityWasPreserved(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful compression was recorded.");
+            context.Assert(snapshot.IdentityPreserved, "Compression reported a tactical identity violation.");
+            context.Assert(
+                !string.IsNullOrWhiteSpace(snapshot.IdentitySummary),
+                "Compression did not record its tactical identity proof.");
+        }
+
+        [Then("the manhunter replacement has a compatible animal tactical profile")]
+        public void ManhunterReplacementHasCompatibleProfile(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful compression was recorded.");
+            PawnKindDef original = DefDatabase<PawnKindDef>.GetNamedSilentFail(snapshot.OriginalPrimaryDefName);
+            PawnKindDef replacement = DefDatabase<PawnKindDef>.GetNamedSilentFail(snapshot.FinalPrimaryDefName);
+            context.Assert(original != null, "The original animal kind was not recorded.");
+            context.Assert(replacement != null, "The replacement animal kind was not recorded.");
+            context.Assert(
+                ThreatIdentity.AnimalKindsAreCompatible(original, replacement, out string reason),
+                "Animal replacement changed the tactical profile: " + reason + ".");
+            context.Assert(
+                replacement.defName.IndexOf("Mastodon", System.StringComparison.OrdinalIgnoreCase) < 0,
+                "A fast predator was incorrectly replaced by a mastodon-style tank.");
+        }
+
+        [Then("an incompatible large animal tank is rejected for the original manhunter species")]
+        public void IncompatibleAnimalTankIsRejected(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful compression was recorded.");
+            PawnKindDef original = DefDatabase<PawnKindDef>.GetNamedSilentFail(snapshot.OriginalPrimaryDefName);
+            PawnKindDef mastodon = DefDatabase<PawnKindDef>.GetNamedSilentFail("Mastodon");
+            context.Assert(original != null, "The original animal kind was not recorded.");
+            context.Assert(mastodon != null, "The official mastodon definition is unavailable.");
+            context.Assert(
+                !ThreatIdentity.AnimalKindsAreCompatible(original, mastodon, out _),
+                "The identity guard incorrectly accepted a large animal tank.");
+        }
+
         [When("I open the compression history window")]
         public void OpenCompressionHistory(PickleContext context)
         {

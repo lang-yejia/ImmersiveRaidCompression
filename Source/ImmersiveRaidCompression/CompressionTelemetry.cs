@@ -28,7 +28,10 @@ namespace ImmersiveRaidCompression
             int originalBossCount,
             int finalBossCount,
             string originalComposition,
-            string finalComposition)
+            string finalComposition,
+            string identitySummary = null,
+            string originalPrimaryDefName = null,
+            string finalPrimaryDefName = null)
         {
             CompressionSnapshot snapshot = new CompressionSnapshot(
                 true,
@@ -44,6 +47,10 @@ namespace ImmersiveRaidCompression
                 originalComposition,
                 finalComposition,
                 null,
+                true,
+                identitySummary,
+                originalPrimaryDefName,
+                finalPrimaryDefName,
                 CurrentTick());
             LastSuccessfulCompression = snapshot;
             Add(snapshot);
@@ -72,6 +79,10 @@ namespace ImmersiveRaidCompression
                 originalComposition,
                 originalComposition,
                 reason,
+                true,
+                "IRC_IdentityKeptVanilla".Translate(),
+                null,
+                null,
                 CurrentTick()));
         }
 
@@ -126,6 +137,10 @@ namespace ImmersiveRaidCompression
         public string OriginalComposition { get; }
         public string FinalComposition { get; }
         public string Reason { get; }
+        public bool IdentityPreserved { get; }
+        public string IdentitySummary { get; }
+        public string OriginalPrimaryDefName { get; }
+        public string FinalPrimaryDefName { get; }
         public int GameTick { get; }
 
         public float RetainedPercent => OriginalCost <= 0f ? 100f : FinalCost / OriginalCost * 100f;
@@ -144,6 +159,10 @@ namespace ImmersiveRaidCompression
             string originalComposition,
             string finalComposition,
             string reason,
+            bool identityPreserved,
+            string identitySummary,
+            string originalPrimaryDefName,
+            string finalPrimaryDefName,
             int gameTick)
         {
             Successful = successful;
@@ -159,6 +178,10 @@ namespace ImmersiveRaidCompression
             OriginalComposition = originalComposition;
             FinalComposition = finalComposition;
             Reason = reason;
+            IdentityPreserved = identityPreserved;
+            IdentitySummary = identitySummary;
+            OriginalPrimaryDefName = originalPrimaryDefName;
+            FinalPrimaryDefName = finalPrimaryDefName;
             GameTick = gameTick;
         }
     }
