@@ -3,7 +3,7 @@
   <name>Immersive Raid Compression</name>
   <author>lyj</author>
   <packageId>langyejia.immersiveraidcompression</packageId>
-  <modVersion>0.3.1</modVersion>
+  <modVersion>0.4.0</modVersion>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
@@ -18,7 +18,7 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Reduces oversized late-game human, mechanoid, and manhunter threats with fewer, stronger vanilla or official-DLC pawn kinds while preserving each threat's tactical roles and special mechanics. An in-game audit page shows every before/after composition, tactical-identity proof, and safe fallback. It does not add hidden combat stat buffs.
+  <description>Reduces oversized late-game human raids, mechanoid raids, manhunter packs, and mech cluster defenders with fewer, stronger vanilla or official-DLC pawn kinds while preserving each threat's tactical roles and special mechanics. Mech cluster buildings and activation rules remain untouched. An in-game audit page shows every before/after composition, tactical-identity proof, and safe fallback. It does not add hidden combat stat buffs.
 
-通过使用派系原本拥有的高阶人类兵种、机械体型号或战术特征相近的官方动物，减少后期超大规模威胁的单位数量，同时保留每类袭击原有的职责与特殊机制。游戏内记录页面会显示压缩前后构成、战术身份验证与安全回退原因；不添加隐藏战斗属性 Buff。</description>
+通过使用派系原本拥有的高阶人类兵种、机械体型号或战术特征相近的官方动物，减少后期人类、机械体、食人动物和机械集群防卫单位的数量，同时保留每类袭击原有的职责与特殊机制。机械集群建筑和唤醒规则完全不变；不添加隐藏战斗属性 Buff。</description>
 </ModMetaData>

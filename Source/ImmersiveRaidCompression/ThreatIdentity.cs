@@ -141,6 +141,57 @@ namespace ImmersiveRaidCompression
             return true;
         }
 
+        public static bool KindGroupIdentityIsPreserved(
+            IReadOnlyList<PawnKindDef> original,
+            IReadOnlyList<PawnKindDef> compressed,
+            Func<PawnKindDef, string> roleFor,
+            Func<PawnKindDef, bool> isProtected,
+            out string reason)
+        {
+            reason = null;
+            Dictionary<string, int> originalRoles = original
+                .GroupBy(roleFor)
+                .ToDictionary(group => group.Key, group => group.Count());
+            Dictionary<string, int> finalRoles = compressed
+                .GroupBy(roleFor)
+                .ToDictionary(group => group.Key, group => group.Count());
+            if (!originalRoles.Keys.OrderBy(role => role)
+                    .SequenceEqual(finalRoles.Keys.OrderBy(role => role)))
+            {
+                reason = "role-set-changed";
+                return false;
+            }
+
+            foreach (KeyValuePair<string, int> role in originalRoles)
+            {
+                float originalShare = role.Value / (float)original.Count;
+                float finalShare = finalRoles[role.Key] / (float)compressed.Count;
+                if (originalShare >= 0.15f && Math.Abs(finalShare - originalShare) > 0.15f)
+                {
+                    reason = "major-role-ratio-changed:" + role.Key;
+                    return false;
+                }
+            }
+
+            List<string> originalProtected = original
+                .Where(isProtected)
+                .Select(kind => kind.defName)
+                .OrderBy(value => value)
+                .ToList();
+            List<string> finalProtected = compressed
+                .Where(isProtected)
+                .Select(kind => kind.defName)
+                .OrderBy(value => value)
+                .ToList();
+            if (!originalProtected.SequenceEqual(finalProtected))
+            {
+                reason = "protected-units-changed";
+                return false;
+            }
+
+            return true;
+        }
+
         private static Dictionary<string, int> RoleCounts(
             IEnumerable<PawnGenOptionWithXenotype> options,
             ICompressionPolicy policy)

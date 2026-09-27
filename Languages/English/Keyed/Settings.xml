@@ -6,11 +6,15 @@
   <IRC_EnableMechanoidRaidsDesc>Promotes mechanoid models within the same vanilla group while preserving breachers and excluding mech bosses as budget fillers.</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnableManhunterPacks>Compress oversized manhunter packs</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>Only uses a stronger vanilla animal with compatible behavior, speed, body size, armor, and abilities. Keeps the vanilla pack when none exists. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
+  <IRC_EnableMechClusters>Compress mech cluster defenders</IRC_EnableMechClusters>
+  <IRC_EnableMechClustersDesc>Only compresses same-role mechanoids in the cluster sketch. Buildings, turrets, shields, problem causers, activation, and positions remain vanilla.</IRC_EnableMechClustersDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>Mechanoid soft pawn cap: {0}</IRC_MechanoidSoftPawnCap>
   <IRC_ManhunterSoftPawnCap>Manhunter soft pawn cap: {0}</IRC_ManhunterSoftPawnCap>
   <IRC_MinManhunterPoints>Minimum manhunter points: {0}</IRC_MinManhunterPoints>
+  <IRC_MechClusterSoftPawnCap>Mech cluster soft pawn cap: {0}</IRC_MechClusterSoftPawnCap>
+  <IRC_MinMechClusterPoints>Minimum mech cluster points: {0}</IRC_MinMechClusterPoints>
   <IRC_VerboseLogging>Verbose compression logging</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>Writes the original and compressed pawn counts and costs to the game log.</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>Open compression history</IRC_OpenHistory>
@@ -33,4 +37,6 @@
   <IRC_ThreatHumanRaid>Human raid</IRC_ThreatHumanRaid>
   <IRC_ThreatMechanoidRaid>Mechanoid raid</IRC_ThreatMechanoidRaid>
   <IRC_ThreatManhunterPack>Manhunter pack</IRC_ThreatManhunterPack>
+  <IRC_ThreatMechCluster>Mech cluster</IRC_ThreatMechCluster>
+  <IRC_IdentityClusterPreserved>Preserved all {0} cluster buildings, dormancy/activation state, mechanoid roles, and protected units; every remaining defender uses a vanilla sketch position.</IRC_IdentityClusterPreserved>
 </LanguageData>

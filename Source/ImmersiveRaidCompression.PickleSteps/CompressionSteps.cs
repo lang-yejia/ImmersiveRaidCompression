@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using RimWorks.Pickle;
 using RimWorld;
@@ -8,6 +9,9 @@ namespace ImmersiveRaidCompression.PickleTests
     [PickleSteps]
     public sealed class CompressionSteps
     {
+        private bool mechClusterStructureMatched;
+        private bool mechClusterPositionsCameFromVanillaSketch;
+
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
         {
@@ -16,6 +20,9 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.enableManhunterPacks = true;
             CompressionMod.Settings.minimumManhunterPoints = 1000f;
             CompressionMod.Settings.manhunterSoftPawnCap = 30;
+            CompressionMod.Settings.enableMechClusters = true;
+            CompressionMod.Settings.minimumMechClusterPoints = 500f;
+            CompressionMod.Settings.mechClusterSoftPawnCap = 8;
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -37,6 +44,65 @@ namespace ImmersiveRaidCompression.PickleTests
 
             bool fired = incident.Worker.TryExecute(parms);
             context.Assert(fired, "The forced mechanoid raid declined to fire.");
+        }
+
+        [When("I compare mech cluster generation with and without compression at {int} points")]
+        public void CompareMechClusterGeneration(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            int seed = context.ScenarioSeed + 701;
+            CompressionMod.Settings.enableMechClusters = false;
+            MechClusterSketch baseline;
+            Rand.PushState(seed);
+            try
+            {
+                baseline = MechClusterGenerator.GenerateClusterSketch(points, map, true, false);
+            }
+            finally
+            {
+                Rand.PopState();
+            }
+
+            CompressionTelemetry.Reset();
+            CompressionMod.Settings.enableMechClusters = true;
+            MechClusterSketch compressed;
+            Rand.PushState(seed);
+            try
+            {
+                compressed = MechClusterGenerator.GenerateClusterSketch(points, map, true, false);
+            }
+            finally
+            {
+                Rand.PopState();
+            }
+
+            context.Assert(baseline != null, "Vanilla mech cluster generation returned null.");
+            context.Assert(compressed != null, "Compressed mech cluster generation returned null.");
+            mechClusterStructureMatched = baseline.startDormant == compressed.startDormant
+                && BuildingSignature(baseline.buildingsSketch)
+                    .SequenceEqual(BuildingSignature(compressed.buildingsSketch));
+            HashSet<IntVec3> baselinePositions = new HashSet<IntVec3>(
+                baseline.pawns.Select(mech => mech.position));
+            mechClusterPositionsCameFromVanillaSketch = compressed.pawns
+                .All(mech => baselinePositions.Contains(mech.position));
+        }
+
+        [Then("the mech cluster building sketch and activation state are unchanged")]
+        public void MechClusterStructureIsUnchanged(PickleContext context)
+        {
+            context.Assert(
+                mechClusterStructureMatched,
+                "Compression changed the mech cluster building sketch or activation state.");
+        }
+
+        [Then("every compressed mech cluster defender uses a vanilla sketch position")]
+        public void MechClusterDefenderPositionsAreVanilla(PickleContext context)
+        {
+            context.Assert(
+                mechClusterPositionsCameFromVanillaSketch,
+                "Compression introduced a defender position that was not in the vanilla sketch.");
         }
 
         [Then("the last compression handled a {string}")]
@@ -154,6 +220,32 @@ namespace ImmersiveRaidCompression.PickleTests
                 retainedPercent <= maximumPercent + 0.001f,
                 "Compression inflated vanilla kind cost to " + retainedPercent.ToString("F1")
                 + "%; expected at most " + maximumPercent + "%.");
+        }
+
+        private static IEnumerable<string> BuildingSignature(Sketch sketch)
+        {
+            if (sketch == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return sketch.Entities
+                .Select(entity => entity is SketchThing thing
+                    ? "thing|" + thing.def.defName
+                        + "|" + (thing.stuff?.defName ?? "none")
+                        + "|" + thing.pos
+                        + "|" + thing.rot.AsInt
+                        + "|" + thing.stackCount
+                        + "|" + thing.quality
+                        + "|" + thing.hitPoints
+                    : entity is SketchTerrain terrain
+                        ? "terrain|" + terrain.def.defName
+                            + "|" + (terrain.stuffForComparingSimilar?.defName ?? "none")
+                            + "|" + terrain.treatSimilarAsSame
+                            + "|" + terrain.pos
+                    : entity.GetType().FullName + "|" + entity.pos)
+                .OrderBy(value => value)
+                .ToList();
         }
     }
 }

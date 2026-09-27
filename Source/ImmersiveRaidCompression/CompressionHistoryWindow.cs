@@ -142,6 +142,8 @@ namespace ImmersiveRaidCompression
                     return "IRC_ThreatMechanoidRaid".Translate();
                 case "manhunter pack":
                     return "IRC_ThreatManhunterPack".Translate();
+                case "mech cluster":
+                    return "IRC_ThreatMechCluster".Translate();
                 default:
                     return threatType;
             }

@@ -115,8 +115,7 @@ namespace ImmersiveRaidCompression
 
         public bool IsProtected(PawnGenOptionWithXenotype option)
         {
-            PawnKindDef kind = option.Option.kind;
-            return kind.isBoss || kind.isGoodBreacher || kind.canBeSapper || IsNamed(kind, "Termite");
+            return IsProtectedKind(option.Option.kind);
         }
 
         public bool IsCandidateAllowed(PawnGenOptionWithXenotype option)
@@ -126,7 +125,16 @@ namespace ImmersiveRaidCompression
 
         public string RoleFor(PawnGenOptionWithXenotype option)
         {
-            PawnKindDef kind = option.Option.kind;
+            return RoleForKind(option.Option.kind);
+        }
+
+        public bool IsProtectedKind(PawnKindDef kind)
+        {
+            return kind.isBoss || kind.isGoodBreacher || kind.canBeSapper || IsNamed(kind, "Termite");
+        }
+
+        public string RoleForKind(PawnKindDef kind)
+        {
             if (IsNamed(kind, "Scyther"))
             {
                 return "melee";

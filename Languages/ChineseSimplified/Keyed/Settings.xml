@@ -6,11 +6,15 @@
   <IRC_EnableMechanoidRaidsDesc>在同一原版编队中晋升机械体型号，保留破墙单位并禁止用机械领主填充预算。</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnableManhunterPacks>压缩规模过大的食人动物群</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>只允许使用行为、速度、体型、护甲和特殊能力相近的高价值原版动物；没有兼容候选时保持原版。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
+  <IRC_EnableMechClusters>压缩机械集群中的机械体</IRC_EnableMechClusters>
+  <IRC_EnableMechClustersDesc>只压缩集群草图中的同职责机械体；建筑、炮塔、护盾、问题建筑、唤醒方式和落点完全保持原版。</IRC_EnableMechClustersDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>机械体软上限：{0}</IRC_MechanoidSoftPawnCap>
   <IRC_ManhunterSoftPawnCap>食人动物软上限：{0}</IRC_ManhunterSoftPawnCap>
   <IRC_MinManhunterPoints>食人动物最低生效点数：{0}</IRC_MinManhunterPoints>
+  <IRC_MechClusterSoftPawnCap>机械集群单位软上限：{0}</IRC_MechClusterSoftPawnCap>
+  <IRC_MinMechClusterPoints>机械集群最低生效点数：{0}</IRC_MinMechClusterPoints>
   <IRC_VerboseLogging>输出详细压缩日志</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>在游戏日志中记录压缩前后的人数和兵种点数。</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>打开袭击压缩记录</IRC_OpenHistory>
@@ -33,4 +37,6 @@
   <IRC_ThreatHumanRaid>人类袭击</IRC_ThreatHumanRaid>
   <IRC_ThreatMechanoidRaid>机械族袭击</IRC_ThreatMechanoidRaid>
   <IRC_ThreatManhunterPack>食人动物群</IRC_ThreatManhunterPack>
+  <IRC_ThreatMechCluster>机械集群</IRC_ThreatMechCluster>
+  <IRC_IdentityClusterPreserved>保留全部 {0} 个集群建筑、休眠/唤醒状态、机械体职责和受保护单位；压缩后的防卫者只使用原版草图落点。</IRC_IdentityClusterPreserved>
 </LanguageData>
