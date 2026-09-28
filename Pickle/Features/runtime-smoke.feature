@@ -49,6 +49,7 @@ Feature: Immersive Raid Compression runtime smoke
     When I defeat the active first mechanoid wave
     And I wait 660 ticks
     Then the next mechanoid wave releases automatically
+    And the next mechanoid wave uses safe vanilla drop pods near survivors
     And no errors were logged
 
   Scenario: a high-point manhunter pack uses a stronger vanilla animal

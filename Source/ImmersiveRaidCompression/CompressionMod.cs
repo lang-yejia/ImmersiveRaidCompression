@@ -20,7 +20,7 @@ namespace ImmersiveRaidCompression
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 980f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1060f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
@@ -36,6 +36,10 @@ namespace ImmersiveRaidCompression
                 "IRC_EnablePhasedMechanoidWaves".Translate(),
                 ref Settings.enablePhasedMechanoidWaves,
                 "IRC_EnablePhasedMechanoidWavesDesc".Translate());
+            listing.CheckboxLabeled(
+                "IRC_EnableTacticalMechDrops".Translate(),
+                ref Settings.enableTacticalMechDrops,
+                "IRC_EnableTacticalMechDropsDesc".Translate());
             listing.CheckboxLabeled(
                 "IRC_EnableManhunterPacks".Translate(),
                 ref Settings.enableManhunterPacks,
@@ -58,9 +62,9 @@ namespace ImmersiveRaidCompression
             listing.Label("IRC_MechWaveBudgetFraction".Translate((Settings.mechWaveBudgetFraction * 100f).ToString("F0")));
             Settings.mechWaveBudgetFraction = Mathf.Round(listing.Slider(Settings.mechWaveBudgetFraction, 0.10f, 0.40f) * 20f) / 20f;
             listing.Label("IRC_MechWaveTrigger".Translate((Settings.mechWaveTriggerFraction * 100f).ToString("F0")));
-            Settings.mechWaveTriggerFraction = Mathf.Round(listing.Slider(Settings.mechWaveTriggerFraction, 0.2f, 0.7f) * 20f) / 20f;
+            Settings.mechWaveTriggerFraction = Mathf.Round(listing.Slider(Settings.mechWaveTriggerFraction, 0.2f, 0.85f) * 20f) / 20f;
             listing.Label("IRC_MechWaveDelay".Translate((Settings.mechWaveMinimumDelayTicks / 60f).ToString("F0")));
-            Settings.mechWaveMinimumDelayTicks = Mathf.RoundToInt(listing.Slider(Settings.mechWaveMinimumDelayTicks, 300, 3600) / 60f) * 60;
+            Settings.mechWaveMinimumDelayTicks = Mathf.RoundToInt(listing.Slider(Settings.mechWaveMinimumDelayTicks, 60, 1800) / 60f) * 60;
             listing.Label("IRC_ManhunterSoftPawnCap".Translate(Settings.manhunterSoftPawnCap));
             Settings.manhunterSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.manhunterSoftPawnCap, 8, 100));
             listing.Label("IRC_MinManhunterPoints".Translate(Settings.minimumManhunterPoints.ToString("F0")));
@@ -85,9 +89,11 @@ namespace ImmersiveRaidCompression
 
     public sealed class CompressionSettings : ModSettings
     {
+        private int settingsVersion = 1;
         public bool enableHumanRaids = true;
         public bool enableMechanoidRaids = true;
         public bool enablePhasedMechanoidWaves = true;
+        public bool enableTacticalMechDrops = true;
         public bool enableManhunterPacks = true;
         public bool enableMechClusters = true;
         public float minimumRaidPoints = 2500f;
@@ -98,17 +104,19 @@ namespace ImmersiveRaidCompression
         public int mechWaveSplitCountThreshold = 36;
         public float mechWaveMinimumPoints = 1500f;
         public float mechWaveBudgetFraction = 0.15f;
-        public float mechWaveTriggerFraction = 0.45f;
-        public int mechWaveMinimumDelayTicks = 600;
+        public float mechWaveTriggerFraction = 0.65f;
+        public int mechWaveMinimumDelayTicks = 180;
         public int manhunterSoftPawnCap = 30;
         public int mechClusterSoftPawnCap = 16;
         public bool verboseLogging;
 
         public override void ExposeData()
         {
+            Scribe_Values.Look(ref settingsVersion, "settingsVersion", 0);
             Scribe_Values.Look(ref enableHumanRaids, "enableHumanRaids", true);
             Scribe_Values.Look(ref enableMechanoidRaids, "enableMechanoidRaids", true);
             Scribe_Values.Look(ref enablePhasedMechanoidWaves, "enablePhasedMechanoidWaves", true);
+            Scribe_Values.Look(ref enableTacticalMechDrops, "enableTacticalMechDrops", true);
             Scribe_Values.Look(ref enableManhunterPacks, "enableManhunterPacks", true);
             Scribe_Values.Look(ref enableMechClusters, "enableMechClusters", true);
             Scribe_Values.Look(ref minimumRaidPoints, "minimumRaidPoints", 2500f);
@@ -119,11 +127,18 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref mechWaveSplitCountThreshold, "mechWaveSplitCountThreshold", 36);
             Scribe_Values.Look(ref mechWaveMinimumPoints, "mechWaveMinimumPoints", 1500f);
             Scribe_Values.Look(ref mechWaveBudgetFraction, "mechWaveBudgetFraction", 0.15f);
-            Scribe_Values.Look(ref mechWaveTriggerFraction, "mechWaveTriggerFraction", 0.45f);
-            Scribe_Values.Look(ref mechWaveMinimumDelayTicks, "mechWaveMinimumDelayTicks", 600);
+            Scribe_Values.Look(ref mechWaveTriggerFraction, "mechWaveTriggerFraction", 0.65f);
+            Scribe_Values.Look(ref mechWaveMinimumDelayTicks, "mechWaveMinimumDelayTicks", 180);
             Scribe_Values.Look(ref manhunterSoftPawnCap, "manhunterSoftPawnCap", 30);
             Scribe_Values.Look(ref mechClusterSoftPawnCap, "mechClusterSoftPawnCap", 16);
             Scribe_Values.Look(ref verboseLogging, "verboseLogging", false);
+            if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 1)
+            {
+                enableTacticalMechDrops = true;
+                mechWaveTriggerFraction = 0.65f;
+                mechWaveMinimumDelayTicks = 180;
+                settingsVersion = 1;
+            }
         }
     }
 }

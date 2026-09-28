@@ -6,6 +6,8 @@
   <IRC_EnableMechanoidRaidsDesc>只在当前原版编队中进行同职责晋升。破墙单位和已有头目保持不变；混编极低概率从自身原版加权候选池晋升最多一个头目。</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnablePhasedMechanoidWaves>将同质机械海分批入场</IRC_EnablePhasedMechanoidWaves>
   <IRC_EnablePhasedMechanoidWavesDesc>仅将采用安全地图边缘入场且数量过多的单一职责机械海规划为两批或三批，并合并过弱尾批。增援加入原袭击 Lord，与原部队共享当前等待/进攻状态。</IRC_EnablePhasedMechanoidWavesDesc>
+  <IRC_EnableTacticalMechDrops>将增援安全空投到仍在战斗的原袭击单位附近</IRC_EnableTacticalMechDrops>
+  <IRC_EnableTacticalMechDropsDesc>使用原版空投舱，但排除玩家小人、玩家建筑、Home 区、屋顶和战争迷雾；找不到整批安全落点时回退到原版地图边缘入场。</IRC_EnableTacticalMechDropsDesc>
   <IRC_EnableManhunterPacks>压缩规模过大的食人动物群</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>只允许使用行为、速度、体型、护甲和特殊能力相近的高价值原版动物；没有兼容候选时保持原版。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>压缩机械集群中的机械体</IRC_EnableMechClusters>
@@ -38,8 +40,9 @@
   <IRC_HistoryIdentity>战术身份：{0}</IRC_HistoryIdentity>
   <IRC_HistoryClassification>机械袭击分类：{0}</IRC_HistoryClassification>
   <IRC_HistoryWave>分批增援：{0}</IRC_HistoryWave>
-  <IRC_WavePlanSummary>共 {0} 个合格批次；首批 {1} 个/{2} 点；待增援 {3} 个；每批最低 {4} 点；原版入场方式 {5}；保留的地图边缘锚点 {6}</IRC_WavePlanSummary>
-  <IRC_WaveReleasedSummary>第 {0} 波释放 {1} 个/{2} 点；剩余 {3} 个、共 {4} 个合格批次；原版入场方式 {5}；保留的地图边缘锚点 {6}；已加入原袭击 Lord 并继承其当前状态</IRC_WaveReleasedSummary>
+  <IRC_WavePlanSummary>共 {0} 个合格批次；首批 {1} 个/{2} 点；待增援 {3} 个；每批最低 {4} 点；原始/回退入场方式 {5}；保留的地图边缘锚点 {6}</IRC_WavePlanSummary>
+  <IRC_WaveReleasedSummary>第 {0} 波释放 {1} 个/{2} 点；剩余 {3} 个、共 {4} 个合格批次；实际入场方式 {5}；锚点 {6}；已加入原袭击 Lord 并继承其当前状态</IRC_WaveReleasedSummary>
+  <IRC_TacticalDropArrival>在原袭击存活单位附近安全使用原版空投舱</IRC_TacticalDropArrival>
   <IRC_MechClassificationSummary>{0}；规划处理：{1}；原版策略：{2}；主导职责：{3}（{4}%）</IRC_MechClassificationSummary>
   <IRC_MechArchetype_Mixed>混合编队</IRC_MechArchetype_Mixed>
   <IRC_MechArchetype_HomogeneousMelee>飞螳海</IRC_MechArchetype_HomogeneousMelee>

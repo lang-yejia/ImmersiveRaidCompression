@@ -99,6 +99,7 @@ namespace ImmersiveRaidCompression
                 firstWave,
                 laterWaves,
                 partition.MinimumWavePoints,
+                settings.enableTacticalMechDrops,
                 settings.mechWaveTriggerFraction,
                 Find.TickManager.TicksGame + settings.mechWaveMinimumDelayTicks);
             component.AddPlan(plan);
@@ -245,6 +246,109 @@ namespace ImmersiveRaidCompression
         }
     }
 
+    public static class TacticalMechDropPlanner
+    {
+        private const int MinimumAllyDistance = 6;
+        private const int MaximumAllyDistance = 18;
+        private const int MinimumPlayerPawnDistance = 25;
+        private const int MinimumPlayerBuildingDistance = 18;
+        private const int PodOpenDelayTicks = 110;
+
+        public static bool TryDropNearSurvivingAttackers(
+            List<Pawn> pawns,
+            Map map,
+            IEnumerable<Pawn> originalRaidPawns,
+            out IntVec3 anchor,
+            out List<IntVec3> dropCells)
+        {
+            anchor = IntVec3.Invalid;
+            dropCells = new List<IntVec3>();
+            if (pawns == null || pawns.Count == 0 || map == null)
+            {
+                return false;
+            }
+
+            List<Pawn> survivors = originalRaidPawns
+                .Where(pawn => pawn != null
+                    && !pawn.Dead
+                    && !pawn.Downed
+                    && pawn.Spawned
+                    && pawn.Map == map)
+                .OrderBy(pawn => pawn.thingIDNumber)
+                .ToList();
+            List<Pawn> playerPawns = map.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction == Faction.OfPlayer && !pawn.Dead)
+                .ToList();
+            List<Building> playerBuildings = map.listerBuildings.allBuildingsColonist;
+
+            foreach (Pawn survivor in survivors)
+            {
+                List<IntVec3> safeCells = GenRadial.RadialCellsAround(
+                        survivor.Position,
+                        MaximumAllyDistance,
+                        true)
+                    .Where(cell => cell.DistanceToSquared(survivor.Position)
+                        >= MinimumAllyDistance * MinimumAllyDistance)
+                    .Where(cell => IsSafeDropCell(cell, map, playerPawns, playerBuildings))
+                    .OrderBy(cell => cell.DistanceToSquared(survivor.Position))
+                    .ThenBy(cell => cell.x)
+                    .ThenBy(cell => cell.z)
+                    .Take(pawns.Count)
+                    .ToList();
+                if (safeCells.Count < pawns.Count)
+                {
+                    continue;
+                }
+
+                for (int index = 0; index < pawns.Count; index++)
+                {
+                    Pawn pawn = pawns[index];
+                    pawn.SetForbidden(true, false);
+                    ActiveTransporterInfo info = new ActiveTransporterInfo
+                    {
+                        openDelay = PodOpenDelayTicks,
+                        leaveSlag = true
+                    };
+                    info.innerContainer.TryAdd(pawn, true);
+                    DropPodUtility.MakeDropPodAt(safeCells[index], map, info);
+                }
+                anchor = survivor.Position;
+                dropCells = safeCells;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsSafeDropCell(
+            IntVec3 cell,
+            Map map,
+            IReadOnlyList<Pawn> playerPawns,
+            IReadOnlyList<Building> playerBuildings)
+        {
+            if (!cell.InBounds(map)
+                || !cell.Standable(map)
+                || cell.Fogged(map)
+                || cell.Roofed(map)
+                || map.areaManager.Home[cell]
+                || cell.GetFirstPawn(map) != null)
+            {
+                return false;
+            }
+
+            int pawnDistanceSquared = MinimumPlayerPawnDistance * MinimumPlayerPawnDistance;
+            if (playerPawns.Any(pawn => pawn.Spawned
+                && pawn.Position.DistanceToSquared(cell) < pawnDistanceSquared))
+            {
+                return false;
+            }
+
+            int buildingDistanceSquared = MinimumPlayerBuildingDistance * MinimumPlayerBuildingDistance;
+            return !playerBuildings.Any(building => building.Spawned
+                && building.Position.DistanceToSquared(cell) < buildingDistanceSquared);
+        }
+    }
+
     public sealed class MechRaidReinforcementComponent : GameComponent
     {
         private List<MechRaidWavePlan> plans = new List<MechRaidWavePlan>();
@@ -255,6 +359,14 @@ namespace ImmersiveRaidCompression
         public int TotalPlannedWaveCount => plans.Sum(plan => plan.RemainingWaveCount + 1);
         public bool AllPlannedWavesMeetMinimum => plans.All(plan => plan.AllPlannedWavesMeetMinimum);
         public float MinimumPlannedWavePoints => plans.Count == 0 ? 0f : plans.Min(plan => plan.MinimumWavePoints);
+        public bool LastReleaseUsedTacticalDrop => plans.Any(plan => plan.LastReleaseUsedTacticalDrop);
+        public IReadOnlyList<IntVec3> LastTacticalDropCells => plans
+            .SelectMany(plan => plan.LastTacticalDropCells)
+            .ToList();
+        public IntVec3 LastTacticalDropAnchor => plans
+            .Where(plan => plan.LastReleaseUsedTacticalDrop)
+            .Select(plan => plan.LastTacticalDropAnchor)
+            .FirstOrDefault();
 
         public MechRaidReinforcementComponent(Game game)
         {
@@ -320,6 +432,10 @@ namespace ImmersiveRaidCompression
         private List<int> remainingWaveSizes = new List<int>();
         private List<float> plannedWavePoints = new List<float>();
         private float minimumWavePoints;
+        private bool tacticalDropReinforcements;
+        private bool lastReleaseUsedTacticalDrop;
+        private List<IntVec3> lastTacticalDropCells = new List<IntVec3>();
+        private IntVec3 lastTacticalDropAnchor = IntVec3.Invalid;
         // Kept only for migrating v0.6 saves.
         private int waveSize;
         private float triggerFraction;
@@ -333,6 +449,9 @@ namespace ImmersiveRaidCompression
         public float MinimumWavePoints => minimumWavePoints;
         public bool AllPlannedWavesMeetMinimum => plannedWavePoints != null
             && plannedWavePoints.All(points => points + 0.01f >= minimumWavePoints);
+        public bool LastReleaseUsedTacticalDrop => lastReleaseUsedTacticalDrop;
+        public IReadOnlyList<IntVec3> LastTacticalDropCells => lastTacticalDropCells;
+        public IntVec3 LastTacticalDropAnchor => lastTacticalDropAnchor;
         public string TelemetryId => telemetryId;
         public int NextReleaseTick => nextReleaseTick;
         public float ActiveCombatPower => releasedPawns
@@ -357,6 +476,7 @@ namespace ImmersiveRaidCompression
             List<Pawn> firstWave,
             List<List<Pawn>> laterWaves,
             float minimumWavePoints,
+            bool tacticalDropReinforcements,
             float triggerFraction,
             int nextReleaseTick)
         {
@@ -372,6 +492,7 @@ namespace ImmersiveRaidCompression
                 .Concat(laterWaves.Select(MechWavePlanner.CombatPower))
                 .ToList();
             this.minimumWavePoints = minimumWavePoints;
+            this.tacticalDropReinforcements = tacticalDropReinforcements;
             this.triggerFraction = triggerFraction;
             this.nextReleaseTick = nextReleaseTick;
             initialWavePower = MechWavePlanner.CombatPower(firstWave);
@@ -430,9 +551,24 @@ namespace ImmersiveRaidCompression
                 pawnGroupKind = PawnGroupKindDefOf.Combat
             };
 
+            bool usedTacticalDrop = false;
+            IntVec3 releaseAnchor = spawnCenter;
+            List<IntVec3> tacticalDropCells = new List<IntVec3>();
             try
             {
-                MechRaidWaveController.ArriveDeferredWave(batch, parms);
+                if (tacticalDropReinforcements)
+                {
+                    usedTacticalDrop = TacticalMechDropPlanner.TryDropNearSurvivingAttackers(
+                        batch,
+                        map,
+                        releasedPawns,
+                        out releaseAnchor,
+                        out tacticalDropCells);
+                }
+                if (!usedTacticalDrop)
+                {
+                    MechRaidWaveController.ArriveDeferredWave(batch, parms);
+                }
                 AttachBatchToOriginalLord(batch);
             }
             catch (Exception exception)
@@ -447,10 +583,13 @@ namespace ImmersiveRaidCompression
             }
 
             releasedPawns.AddRange(batch);
+            lastReleaseUsedTacticalDrop = usedTacticalDrop;
+            lastTacticalDropCells = tacticalDropCells;
+            lastTacticalDropAnchor = usedTacticalDrop ? releaseAnchor : IntVec3.Invalid;
             remainingWaveSizes.RemoveAt(0);
             releasedWaveCount++;
             nextReleaseTick = Find.TickManager.TicksGame
-                + (CompressionMod.Settings?.mechWaveMinimumDelayTicks ?? 600);
+                + (CompressionMod.Settings?.mechWaveMinimumDelayTicks ?? 180);
             CompressionTelemetry.RecordWaveRelease(
                 telemetryId,
                 releasedWaveCount,
@@ -458,15 +597,18 @@ namespace ImmersiveRaidCompression
                 MechWavePlanner.CombatPower(batch),
                 deferredPawns.Count,
                 RemainingWaveCount,
-                arrivalMode.defName,
-                spawnCenter);
+                usedTacticalDrop
+                    ? "IRC_TacticalDropArrival".Translate()
+                    : arrivalMode.defName,
+                releaseAnchor);
             if (CompressionMod.Settings?.verboseLogging == true)
             {
                 Log.Message(
                     "[Immersive Raid Compression] released mech reinforcement wave "
                     + releasedWaveCount + ": " + batch.Count + " pawns, "
-                    + deferredPawns.Count + " deferred, arrival " + arrivalMode.defName
-                    + ", edge anchor " + spawnCenter + ".");
+                    + deferredPawns.Count + " deferred, arrival "
+                    + (usedTacticalDrop ? "tactical vanilla drop pods" : arrivalMode.defName)
+                    + ", anchor " + releaseAnchor + ".");
             }
             return true;
         }
@@ -517,6 +659,10 @@ namespace ImmersiveRaidCompression
             Scribe_Collections.Look(ref remainingWaveSizes, "remainingWaveSizes", LookMode.Value);
             Scribe_Collections.Look(ref plannedWavePoints, "plannedWavePoints", LookMode.Value);
             Scribe_Values.Look(ref minimumWavePoints, "minimumWavePoints");
+            Scribe_Values.Look(ref tacticalDropReinforcements, "tacticalDropReinforcements", false);
+            Scribe_Values.Look(ref lastReleaseUsedTacticalDrop, "lastReleaseUsedTacticalDrop", false);
+            Scribe_Collections.Look(ref lastTacticalDropCells, "lastTacticalDropCells", LookMode.Value);
+            Scribe_Values.Look(ref lastTacticalDropAnchor, "lastTacticalDropAnchor", IntVec3.Invalid);
             Scribe_Values.Look(ref waveSize, "waveSize", 24);
             Scribe_Values.Look(ref triggerFraction, "triggerFraction", 0.45f);
             Scribe_Values.Look(ref initialWavePower, "initialWavePower");
@@ -529,6 +675,7 @@ namespace ImmersiveRaidCompression
                 deferredPawns ??= new List<Pawn>();
                 remainingWaveSizes ??= new List<int>();
                 plannedWavePoints ??= new List<float>();
+                lastTacticalDropCells ??= new List<IntVec3>();
                 if (deferredPawns.Count > 0 && remainingWaveSizes.Count == 0)
                 {
                     int legacySize = Math.Max(1, waveSize);

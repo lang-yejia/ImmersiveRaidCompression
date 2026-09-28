@@ -35,12 +35,13 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.minimumMechClusterPoints = 500f;
             CompressionMod.Settings.mechClusterSoftPawnCap = 8;
             CompressionMod.Settings.enablePhasedMechanoidWaves = true;
+            CompressionMod.Settings.enableTacticalMechDrops = true;
             CompressionMod.Settings.mechanoidSoftPawnCap = 8;
             CompressionMod.Settings.mechWaveSplitCountThreshold = 12;
             CompressionMod.Settings.mechWaveMinimumPoints = 1000f;
             CompressionMod.Settings.mechWaveBudgetFraction = 0.15f;
-            CompressionMod.Settings.mechWaveTriggerFraction = 0.45f;
-            CompressionMod.Settings.mechWaveMinimumDelayTicks = 600;
+            CompressionMod.Settings.mechWaveTriggerFraction = 0.65f;
+            CompressionMod.Settings.mechWaveMinimumDelayTicks = 180;
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -267,7 +268,11 @@ namespace ImmersiveRaidCompression.PickleTests
                 .Select(LordUtility.GetLord)
                 .FirstOrDefault(candidate => candidate != null);
             context.Assert(phasedMechOriginalLord != null, "The original mechanoid wave has no raid Lord.");
-            foreach (Pawn pawn in phasedMechFirstWave.Where(pawn => pawn.Spawned && !pawn.Dead).ToList())
+            List<Pawn> active = phasedMechFirstWave
+                .Where(pawn => pawn.Spawned && !pawn.Dead)
+                .ToList();
+            context.Assert(active.Count >= 2, "The active wave is too small to leave a reinforcement anchor.");
+            foreach (Pawn pawn in active.Skip(1))
             {
                 pawn.Kill(null);
             }
@@ -306,6 +311,35 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 phasedMechWaveUsedEdgeAnchor,
                 "A staged mechanoid wave appeared outside the resolved vanilla edge region.");
+        }
+
+        [Then("the next mechanoid wave uses safe vanilla drop pods near survivors")]
+        public void NextWaveUsesSafeTacticalDropPods(PickleContext context)
+        {
+            Map map = Find.CurrentMap;
+            MechRaidReinforcementComponent component = Current.Game.GetComponent<MechRaidReinforcementComponent>();
+            IReadOnlyList<IntVec3> cells = component.LastTacticalDropCells;
+            IntVec3 anchor = component.LastTacticalDropAnchor;
+            context.Assert(component.LastReleaseUsedTacticalDrop, "The reinforcement fell back to edge arrival.");
+            context.Assert(cells.Count > 0, "No tactical drop cells were recorded.");
+            context.Assert(anchor.IsValid, "No surviving-attacker drop anchor was recorded.");
+
+            List<Pawn> playerPawns = map.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction == Faction.OfPlayer && !pawn.Dead)
+                .ToList();
+            List<Building> playerBuildings = map.listerBuildings.allBuildingsColonist;
+            context.Assert(
+                cells.All(cell => cell.InBounds(map)
+                    && !cell.Roofed(map)
+                    && !cell.Fogged(map)
+                    && !map.areaManager.Home[cell]
+                    && playerPawns.All(pawn => pawn.Position.DistanceToSquared(cell) >= 25 * 25)
+                    && playerBuildings.All(building => building.Position.DistanceToSquared(cell) >= 18 * 18)),
+                "A tactical reinforcement pod landed in an unsafe player or base exclusion zone.");
+            context.Assert(
+                cells.All(cell => cell.DistanceToSquared(anchor) >= 6 * 6
+                    && cell.DistanceToSquared(anchor) <= 18 * 18),
+                "A tactical reinforcement pod did not land near a surviving original attacker.");
         }
 
 

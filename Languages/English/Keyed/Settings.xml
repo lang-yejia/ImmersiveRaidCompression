@@ -6,6 +6,8 @@
   <IRC_EnableMechanoidRaidsDesc>Promotes same-role models from the current vanilla group. Breachers and existing bosses are preserved; a mixed force may very rarely gain at most one boss from its own weighted vanilla pool.</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnablePhasedMechanoidWaves>Phase homogeneous mechanoid swarms</IRC_EnablePhasedMechanoidWaves>
   <IRC_EnablePhasedMechanoidWavesDesc>For oversized pure-role swarms using safe edge arrivals, builds two or three point-qualified waves and merges weak tails. Reinforcements join the original raid Lord and share its current wait/attack state.</IRC_EnablePhasedMechanoidWavesDesc>
+  <IRC_EnableTacticalMechDrops>Drop reinforcements safely near surviving attackers</IRC_EnableTacticalMechDrops>
+  <IRC_EnableTacticalMechDropsDesc>Uses vanilla drop pods near the original raid's surviving units, but rejects player pawns, player buildings, home area, roofs, and fog. Falls back to the original edge arrival when no safe cluster exists.</IRC_EnableTacticalMechDropsDesc>
   <IRC_EnableManhunterPacks>Compress oversized manhunter packs</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>Only uses a stronger vanilla animal with compatible behavior, speed, body size, armor, and abilities. Keeps the vanilla pack when none exists. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>Compress mech cluster defenders</IRC_EnableMechClusters>
@@ -38,8 +40,9 @@
   <IRC_HistoryIdentity>Tactical identity: {0}</IRC_HistoryIdentity>
   <IRC_HistoryClassification>Mech raid classification: {0}</IRC_HistoryClassification>
   <IRC_HistoryWave>Phased reinforcement: {0}</IRC_HistoryWave>
-  <IRC_WavePlanSummary>{0} qualified waves; first wave {1} pawns/{2} points; deferred {3}; minimum {4} points per wave; vanilla arrival {5}; reserved edge anchor {6}</IRC_WavePlanSummary>
-  <IRC_WaveReleasedSummary>wave {0} released {1} pawns/{2} points; {3} pawns in {4} qualified waves remain; vanilla arrival {5}; reserved edge anchor {6}; joined the original raid Lord and inherited its current state</IRC_WaveReleasedSummary>
+  <IRC_WavePlanSummary>{0} qualified waves; first wave {1} pawns/{2} points; deferred {3}; minimum {4} points per wave; original/fallback arrival {5}; reserved edge anchor {6}</IRC_WavePlanSummary>
+  <IRC_WaveReleasedSummary>wave {0} released {1} pawns/{2} points; {3} pawns in {4} qualified waves remain; actual arrival {5}; anchor {6}; joined the original raid Lord and inherited its current state</IRC_WaveReleasedSummary>
+  <IRC_TacticalDropArrival>safe vanilla drop pods near surviving attackers</IRC_TacticalDropArrival>
   <IRC_MechClassificationSummary>{0}; planned treatment: {1}; strategy: {2}; dominant role: {3} ({4}%)</IRC_MechClassificationSummary>
   <IRC_MechArchetype_Mixed>mixed force</IRC_MechArchetype_Mixed>
   <IRC_MechArchetype_HomogeneousMelee>scyther swarm</IRC_MechArchetype_HomogeneousMelee>
