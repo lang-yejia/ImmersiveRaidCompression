@@ -11,6 +11,7 @@ namespace ImmersiveRaidCompression.PickleTests
     {
         private bool mechClusterStructureMatched;
         private bool mechClusterPositionsCameFromVanillaSketch;
+        private bool mechRaidClassifierMatchedExpectedFamilies;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -44,6 +45,61 @@ namespace ImmersiveRaidCompression.PickleTests
 
             bool fired = incident.Worker.TryExecute(parms);
             context.Assert(fired, "The forced mechanoid raid declined to fire.");
+        }
+
+        [When("I classify representative vanilla mechanoid forces")]
+        public void ClassifyRepresentativeMechanoidForces(PickleContext context)
+        {
+            RaidStrategyDef immediate = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            RaidStrategyDef breachStrategy = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackBreaching");
+            PawnKindDef scyther = DefDatabase<PawnKindDef>.GetNamed("Mech_Scyther");
+            PawnKindDef militor = DefDatabase<PawnKindDef>.GetNamed("Mech_Militor");
+            PawnKindDef pikeman = DefDatabase<PawnKindDef>.GetNamed("Mech_Pikeman");
+            PawnKindDef termite = DefDatabase<PawnKindDef>.GetNamed("Mech_Termite_Breach");
+            PawnKindDef warqueen = DefDatabase<PawnKindDef>.GetNamed("Mech_Warqueen");
+
+            MechRaidClassification swarm = MechRaidClassifier.Analyze(
+                Enumerable.Repeat(scyther, 30),
+                immediate);
+            MechRaidClassification mixed = MechRaidClassifier.Analyze(
+                Enumerable.Repeat(scyther, 10)
+                    .Concat(Enumerable.Repeat(militor, 10))
+                    .Concat(Enumerable.Repeat(pikeman, 10)),
+                immediate);
+            MechRaidClassification breach = MechRaidClassifier.Analyze(
+                Enumerable.Repeat(scyther, 29).Concat(new[] { termite }),
+                breachStrategy);
+            MechRaidClassification bossLed = MechRaidClassifier.Analyze(
+                Enumerable.Repeat(militor, 29).Concat(new[] { warqueen }),
+                immediate);
+
+            mechRaidClassifierMatchedExpectedFamilies =
+                swarm.Archetype == MechRaidArchetype.HomogeneousMelee
+                && swarm.Treatment == MechRaidTreatment.PhasedReinforcementCandidate
+                && mixed.Archetype == MechRaidArchetype.Mixed
+                && mixed.Treatment == MechRaidTreatment.VanillaPromotion
+                && breach.Archetype == MechRaidArchetype.Breach
+                && breach.Treatment == MechRaidTreatment.ProtectedStrategy
+                && bossLed.Archetype == MechRaidArchetype.BossLed
+                && bossLed.Treatment == MechRaidTreatment.ProtectedStrategy;
+        }
+
+        [Then("the mechanoid classifier separates swarms, mixed forces, breaches, and boss-led forces")]
+        public void ClassifierSeparatesMechanicalForces(PickleContext context)
+        {
+            context.Assert(
+                mechRaidClassifierMatchedExpectedFamilies,
+                "The mechanoid raid classifier did not preserve the expected tactical families.");
+        }
+
+        [Then("the last mechanoid raid history record contains a treatment classification")]
+        public void MechanoidHistoryContainsClassification(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful mechanoid compression was recorded.");
+            context.Assert(
+                !string.IsNullOrWhiteSpace(snapshot.ClassificationSummary),
+                "The mechanoid raid record did not contain a classification summary.");
         }
 
         [When("I compare mech cluster generation with and without compression at {int} points")]

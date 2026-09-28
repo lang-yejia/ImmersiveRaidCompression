@@ -27,6 +27,10 @@ namespace ImmersiveRaidCompression
                 return;
             }
 
+            MechRaidClassification mechClassification = plan.Policy is MechanoidRaidCompressionPolicy
+                ? MechRaidClassifier.Analyze(groupParms, original)
+                : null;
+
             CompressionResult result = VanillaPawnKindCompressor.TryCompress(
                 pointsTotal,
                 options,
@@ -45,7 +49,8 @@ namespace ImmersiveRaidCompression
                     result.OriginalCost,
                     pointsTotal,
                     composition,
-                    "IRC_ReasonNoPromotion".Translate());
+                    "IRC_ReasonNoPromotion".Translate(),
+                    mechClassification?.Summary);
                 if (CompressionMod.Settings.verboseLogging)
                 {
                     Verse.Log.Message(
@@ -77,7 +82,10 @@ namespace ImmersiveRaidCompression
                 result.Options.Count(option => option.Option.kind.isBoss),
                 originalComposition,
                 finalComposition,
-                "IRC_IdentityRolesPreserved".Translate());
+                "IRC_IdentityRolesPreserved".Translate(),
+                null,
+                null,
+                mechClassification?.Summary);
             Verse.Log.Message(
                 "[Immersive Raid Compression] " + groupParms.faction.Name
                 + " (" + plan.Policy.ThreatType + ")"

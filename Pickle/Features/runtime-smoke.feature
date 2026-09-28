@@ -23,7 +23,18 @@ Feature: Immersive Raid Compression runtime smoke
     And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
     And the last compression introduced no mechanoid bosses
     And compression history contains detailed before and after compositions
+    And the last mechanoid raid history record contains a treatment classification
     And the last compression preserved its tactical identity
+    When I open the compression history window
+    And I wait 1 ticks
+    Then the compression history window is open
+    And no errors were logged
+
+  Scenario: vanilla mechanoid force families receive distinct safe treatments
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When I classify representative vanilla mechanoid forces
+    Then the mechanoid classifier separates swarms, mixed forces, breaches, and boss-led forces
     And no errors were logged
 
   Scenario: a high-point manhunter pack uses a stronger vanilla animal

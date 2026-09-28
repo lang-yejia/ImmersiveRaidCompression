@@ -29,6 +29,18 @@
   <IRC_FinalComposition>最终构成：{0}</IRC_FinalComposition>
   <IRC_HistoryReason>原因：{0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>战术身份：{0}</IRC_HistoryIdentity>
+  <IRC_HistoryClassification>机械袭击分类：{0}</IRC_HistoryClassification>
+  <IRC_MechClassificationSummary>{0}；规划处理：{1}；原版策略：{2}；主导职责：{3}（{4}%）</IRC_MechClassificationSummary>
+  <IRC_MechArchetype_Mixed>混合编队</IRC_MechArchetype_Mixed>
+  <IRC_MechArchetype_HomogeneousMelee>飞螳海</IRC_MechArchetype_HomogeneousMelee>
+  <IRC_MechArchetype_HomogeneousMilitor>米利托海</IRC_MechArchetype_HomogeneousMilitor>
+  <IRC_MechArchetype_HomogeneousCentipede>蜈蚣编队</IRC_MechArchetype_HomogeneousCentipede>
+  <IRC_MechArchetype_HomogeneousRole>单一职责机械海</IRC_MechArchetype_HomogeneousRole>
+  <IRC_MechArchetype_BossLed>头目带队编队</IRC_MechArchetype_BossLed>
+  <IRC_MechArchetype_Breach>破墙编队</IRC_MechArchetype_Breach>
+  <IRC_MechTreatment_VanillaPromotion>同职责原版高阶替换</IRC_MechTreatment_VanillaPromotion>
+  <IRC_MechTreatment_PhasedReinforcementCandidate>可进入保持入场方式的分批增援阶段</IRC_MechTreatment_PhasedReinforcementCandidate>
+  <IRC_MechTreatment_ProtectedStrategy>受保护战术，不进行通用分批</IRC_MechTreatment_ProtectedStrategy>
   <IRC_IdentityRolesPreserved>所有原有职责及受保护单位均已保留，主要职责比例通过检查。</IRC_IdentityRolesPreserved>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>

@@ -31,7 +31,8 @@ namespace ImmersiveRaidCompression
             string finalComposition,
             string identitySummary = null,
             string originalPrimaryDefName = null,
-            string finalPrimaryDefName = null)
+            string finalPrimaryDefName = null,
+            string classificationSummary = null)
         {
             CompressionSnapshot snapshot = new CompressionSnapshot(
                 true,
@@ -51,6 +52,7 @@ namespace ImmersiveRaidCompression
                 identitySummary,
                 originalPrimaryDefName,
                 finalPrimaryDefName,
+                classificationSummary,
                 CurrentTick());
             LastSuccessfulCompression = snapshot;
             Add(snapshot);
@@ -63,7 +65,8 @@ namespace ImmersiveRaidCompression
             float originalCost,
             float threatBudget,
             string originalComposition,
-            string reason)
+            string reason,
+            string classificationSummary = null)
         {
             Add(new CompressionSnapshot(
                 false,
@@ -83,6 +86,7 @@ namespace ImmersiveRaidCompression
                 "IRC_IdentityKeptVanilla".Translate(),
                 null,
                 null,
+                classificationSummary,
                 CurrentTick()));
         }
 
@@ -141,6 +145,7 @@ namespace ImmersiveRaidCompression
         public string IdentitySummary { get; }
         public string OriginalPrimaryDefName { get; }
         public string FinalPrimaryDefName { get; }
+        public string ClassificationSummary { get; }
         public int GameTick { get; }
 
         public float RetainedPercent => OriginalCost <= 0f ? 100f : FinalCost / OriginalCost * 100f;
@@ -163,6 +168,7 @@ namespace ImmersiveRaidCompression
             string identitySummary,
             string originalPrimaryDefName,
             string finalPrimaryDefName,
+            string classificationSummary,
             int gameTick)
         {
             Successful = successful;
@@ -182,6 +188,7 @@ namespace ImmersiveRaidCompression
             IdentitySummary = identitySummary;
             OriginalPrimaryDefName = originalPrimaryDefName;
             FinalPrimaryDefName = finalPrimaryDefName;
+            ClassificationSummary = classificationSummary;
             GameTick = gameTick;
         }
     }

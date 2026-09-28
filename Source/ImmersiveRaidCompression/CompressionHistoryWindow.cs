@@ -73,7 +73,12 @@ namespace ImmersiveRaidCompression
             float identityHeight = Text.CalcHeight(
                 "IRC_HistoryIdentity".Translate(record.IdentitySummary),
                 textWidth) + 4f;
-            return 92f + originalHeight + finalHeight + identityHeight + reasonHeight;
+            float classificationHeight = string.IsNullOrEmpty(record.ClassificationSummary)
+                ? 0f
+                : Text.CalcHeight(
+                    "IRC_HistoryClassification".Translate(record.ClassificationSummary),
+                    textWidth) + 4f;
+            return 92f + originalHeight + finalHeight + identityHeight + classificationHeight + reasonHeight;
         }
 
         private static void DrawRecord(Rect rect, CompressionSnapshot record)
@@ -123,6 +128,14 @@ namespace ImmersiveRaidCompression
             float identityHeight = Text.CalcHeight(identity, inner.width);
             Widgets.Label(new Rect(inner.x, y, inner.width, identityHeight), identity);
             y += identityHeight + 3f;
+
+            if (!string.IsNullOrEmpty(record.ClassificationSummary))
+            {
+                string classification = "IRC_HistoryClassification".Translate(record.ClassificationSummary);
+                float classificationHeight = Text.CalcHeight(classification, inner.width);
+                Widgets.Label(new Rect(inner.x, y, inner.width, classificationHeight), classification);
+                y += classificationHeight + 3f;
+            }
 
             if (!record.Successful)
             {

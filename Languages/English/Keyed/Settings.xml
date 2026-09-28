@@ -29,6 +29,18 @@
   <IRC_FinalComposition>Final: {0}</IRC_FinalComposition>
   <IRC_HistoryReason>Reason: {0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>Tactical identity: {0}</IRC_HistoryIdentity>
+  <IRC_HistoryClassification>Mech raid classification: {0}</IRC_HistoryClassification>
+  <IRC_MechClassificationSummary>{0}; planned treatment: {1}; strategy: {2}; dominant role: {3} ({4}%)</IRC_MechClassificationSummary>
+  <IRC_MechArchetype_Mixed>mixed force</IRC_MechArchetype_Mixed>
+  <IRC_MechArchetype_HomogeneousMelee>scyther swarm</IRC_MechArchetype_HomogeneousMelee>
+  <IRC_MechArchetype_HomogeneousMilitor>militor swarm</IRC_MechArchetype_HomogeneousMilitor>
+  <IRC_MechArchetype_HomogeneousCentipede>centipede formation</IRC_MechArchetype_HomogeneousCentipede>
+  <IRC_MechArchetype_HomogeneousRole>role-dominant swarm</IRC_MechArchetype_HomogeneousRole>
+  <IRC_MechArchetype_BossLed>boss-led force</IRC_MechArchetype_BossLed>
+  <IRC_MechArchetype_Breach>breach force</IRC_MechArchetype_Breach>
+  <IRC_MechTreatment_VanillaPromotion>same-role vanilla promotion</IRC_MechTreatment_VanillaPromotion>
+  <IRC_MechTreatment_PhasedReinforcementCandidate>candidate for arrival-aware phased reinforcement</IRC_MechTreatment_PhasedReinforcementCandidate>
+  <IRC_MechTreatment_ProtectedStrategy>protected strategy; no generic phasing</IRC_MechTreatment_ProtectedStrategy>
   <IRC_IdentityRolesPreserved>All original roles and protected units remain, and major role ratios passed validation.</IRC_IdentityRolesPreserved>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
