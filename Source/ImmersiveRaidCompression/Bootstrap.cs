@@ -12,7 +12,7 @@ namespace ImmersiveRaidCompression
         {
             Harmony harmony = new Harmony(HarmonyId);
             harmony.PatchAll();
-            Log.Message("[Immersive Raid Compression] Loaded human, mechanoid, manhunter, and mech-cluster compression.");
+            Log.Message("[Immersive Raid Compression] Loaded human, mechanoid, phased mech-wave, manhunter, and mech-cluster compression.");
         }
     }
 }

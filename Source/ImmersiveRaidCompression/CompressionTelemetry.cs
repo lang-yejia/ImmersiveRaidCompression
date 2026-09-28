@@ -109,6 +109,47 @@ namespace ImmersiveRaidCompression
             history.Clear();
         }
 
+        public static void AttachWavePlan(
+            string telemetryId,
+            int firstWaveCount,
+            int deferredCount,
+            string arrivalMode,
+            IntVec3 spawnCenter)
+        {
+            CompressionSnapshot snapshot = history.FirstOrDefault(record => record.ThreatType == "mechanoid raid");
+            if (snapshot == null)
+            {
+                return;
+            }
+            snapshot.WavePlanId = telemetryId;
+            snapshot.WaveSummary = "IRC_WavePlanSummary".Translate(
+                firstWaveCount,
+                deferredCount,
+                arrivalMode,
+                spawnCenter);
+        }
+
+        public static void RecordWaveRelease(
+            string telemetryId,
+            int releasedWaveCount,
+            int batchCount,
+            int remainingCount,
+            string arrivalMode,
+            IntVec3 spawnCenter)
+        {
+            CompressionSnapshot snapshot = history.FirstOrDefault(record => record.WavePlanId == telemetryId);
+            if (snapshot == null)
+            {
+                return;
+            }
+            snapshot.WaveSummary = "IRC_WaveReleasedSummary".Translate(
+                releasedWaveCount,
+                batchCount,
+                remainingCount,
+                arrivalMode,
+                spawnCenter);
+        }
+
         private static void Add(CompressionSnapshot snapshot)
         {
             history.Insert(0, snapshot);
@@ -146,6 +187,8 @@ namespace ImmersiveRaidCompression
         public string OriginalPrimaryDefName { get; }
         public string FinalPrimaryDefName { get; }
         public string ClassificationSummary { get; }
+        public string WavePlanId { get; internal set; }
+        public string WaveSummary { get; internal set; }
         public int GameTick { get; }
 
         public float RetainedPercent => OriginalCost <= 0f ? 100f : FinalCost / OriginalCost * 100f;

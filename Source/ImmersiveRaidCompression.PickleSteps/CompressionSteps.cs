@@ -12,6 +12,10 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool mechClusterStructureMatched;
         private bool mechClusterPositionsCameFromVanillaSketch;
         private bool mechRaidClassifierMatchedExpectedFamilies;
+        private bool phasedMechWaveSplitAndReleased;
+        private bool phasedMechWaveUsedEdgeAnchor;
+        private List<Pawn> phasedMechFirstWave;
+        private int phasedMechDeferredBeforeRelease;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -24,6 +28,10 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.enableMechClusters = true;
             CompressionMod.Settings.minimumMechClusterPoints = 500f;
             CompressionMod.Settings.mechClusterSoftPawnCap = 8;
+            CompressionMod.Settings.enablePhasedMechanoidWaves = true;
+            CompressionMod.Settings.mechanoidSoftPawnCap = 8;
+            CompressionMod.Settings.mechWaveTriggerFraction = 0.45f;
+            CompressionMod.Settings.mechWaveMinimumDelayTicks = 600;
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -73,6 +81,23 @@ namespace ImmersiveRaidCompression.PickleTests
                 Enumerable.Repeat(militor, 29).Concat(new[] { warqueen }),
                 immediate);
 
+            List<PawnKindDef> pureSwarm = Enumerable.Repeat(scyther, 30).ToList();
+            bool arrivalRulesMatched =
+                MechRaidWaveController.CanPhase(pureSwarm, immediate, PawnsArrivalModeDefOf.EdgeWalkIn)
+                && MechRaidWaveController.CanPhase(pureSwarm, immediate, PawnsArrivalModeDefOf.EdgeDrop)
+                && !MechRaidWaveController.CanPhase(
+                    pureSwarm,
+                    immediate,
+                    PawnsArrivalModeDefOf.CenterDrop)
+                && !MechRaidWaveController.CanPhase(
+                    pureSwarm,
+                    immediate,
+                    PawnsArrivalModeDefOf.RandomDrop)
+                && !MechRaidWaveController.CanPhase(
+                    pureSwarm,
+                    immediate,
+                    PawnsArrivalModeDefOf.EdgeWalkInGroups);
+
             mechRaidClassifierMatchedExpectedFamilies =
                 swarm.Archetype == MechRaidArchetype.HomogeneousMelee
                 && swarm.Treatment == MechRaidTreatment.PhasedReinforcementCandidate
@@ -81,7 +106,8 @@ namespace ImmersiveRaidCompression.PickleTests
                 && breach.Archetype == MechRaidArchetype.Breach
                 && breach.Treatment == MechRaidTreatment.ProtectedStrategy
                 && bossLed.Archetype == MechRaidArchetype.BossLed
-                && bossLed.Treatment == MechRaidTreatment.ProtectedStrategy;
+                && bossLed.Treatment == MechRaidTreatment.ProtectedStrategy
+                && arrivalRulesMatched;
         }
 
         [Then("the mechanoid classifier separates swarms, mixed forces, breaches, and boss-led forces")]
@@ -100,6 +126,104 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 !string.IsNullOrWhiteSpace(snapshot.ClassificationSummary),
                 "The mechanoid raid record did not contain a classification summary.");
+        }
+
+        [When("I stage a homogeneous mechanoid edge wave at {int} points")]
+        public void StageAndReleaseHomogeneousMechanoidWave(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            Faction faction = Find.FactionManager.FirstFactionOfDef(FactionDefOf.Mechanoid);
+            context.Assert(map != null, "No current map is loaded.");
+            context.Assert(faction != null, "The mechanoid faction is not present.");
+
+            PawnGroupMaker maker = faction.def.pawnGroupMakers.FirstOrDefault(candidate =>
+                candidate.kindDef == PawnGroupKindDefOf.Combat
+                && candidate.options.Count == 1
+                && candidate.options[0].kind.defName == "Mech_Scyther");
+            context.Assert(maker != null, "The vanilla scyther-only pawn group maker is unavailable.");
+
+            RaidStrategyDef strategy = DefDatabase<RaidStrategyDef>.GetNamed("StageThenAttack");
+            PawnGroupMakerParms groupParms = new PawnGroupMakerParms
+            {
+                groupKind = PawnGroupKindDefOf.Combat,
+                points = points,
+                faction = faction,
+                raidStrategy = strategy,
+                seed = context.ScenarioSeed + 1701
+            };
+            List<Pawn> pawns = maker.GeneratePawns(groupParms).ToList();
+            int originalCount = pawns.Count;
+            context.Assert(
+                originalCount > CompressionMod.Settings.mechanoidSoftPawnCap,
+                "The scyther-only maker did not exceed the configured wave cap.");
+
+            IncidentParms incidentParms = new IncidentParms
+            {
+                target = map,
+                points = points,
+                faction = faction,
+                forced = true,
+                sendLetter = false,
+                raidStrategy = strategy,
+                raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn,
+                pawnGroupKind = PawnGroupKindDefOf.Combat
+            };
+            context.Assert(
+                incidentParms.raidArrivalMode.Worker.TryResolveRaidSpawnCenter(incidentParms),
+                "The vanilla edge-walk arrival could not resolve an entry anchor.");
+            IntVec3 anchor = incidentParms.spawnCenter;
+
+            incidentParms.raidArrivalMode.Worker.Arrive(pawns, incidentParms);
+            strategy.Worker.MakeLords(incidentParms, pawns);
+            int firstWaveCount = pawns.Count;
+            MechRaidReinforcementComponent component = Current.Game.GetComponent<MechRaidReinforcementComponent>();
+            phasedMechFirstWave = new List<Pawn>(pawns);
+            phasedMechDeferredBeforeRelease = component.PendingPawnCount;
+            phasedMechWaveSplitAndReleased =
+                firstWaveCount <= CompressionMod.Settings.mechanoidSoftPawnCap
+                && phasedMechDeferredBeforeRelease == originalCount - firstWaveCount;
+            phasedMechWaveUsedEdgeAnchor = DistanceToMapEdge(anchor, map) <= 1
+                && map.mapPawns.AllPawnsSpawned
+                    .Where(pawn => pawn.Faction == faction && !pawn.Dead)
+                    .All(pawn => DistanceToMapEdge(pawn.Position, map) <= 20);
+        }
+
+        [When("I defeat the active first mechanoid wave")]
+        public void DefeatActiveFirstMechanoidWave(PickleContext context)
+        {
+            context.Assert(phasedMechFirstWave != null, "No staged first wave was recorded.");
+            foreach (Pawn pawn in phasedMechFirstWave.Where(pawn => pawn.Spawned && !pawn.Dead).ToList())
+            {
+                pawn.Kill(null);
+            }
+        }
+
+        [Then("the homogeneous mechanoid force is split into an active and deferred force")]
+        public void HomogeneousMechanoidForceIsSplit(PickleContext context)
+        {
+            context.Assert(
+                phasedMechWaveSplitAndReleased,
+                "The homogeneous mechanoid force did not split into active and deferred forces.");
+        }
+
+        [Then("the next mechanoid wave releases automatically")]
+        public void NextMechanoidWaveReleasesAutomatically(PickleContext context)
+        {
+            MechRaidReinforcementComponent component = Current.Game.GetComponent<MechRaidReinforcementComponent>();
+            context.Assert(
+                component.PendingPawnCount < phasedMechDeferredBeforeRelease,
+                "The next mechanoid wave did not release after active combat power fell below the threshold.");
+            CompressionSnapshot record = CompressionTelemetry.History.FirstOrDefault(
+                snapshot => !string.IsNullOrWhiteSpace(snapshot.WaveSummary));
+            context.Assert(record != null, "The reinforcement release was not recorded in compression history.");
+        }
+
+        [Then("the staged mechanoid waves use the resolved vanilla edge region")]
+        public void StagedMechanoidWavesUseVanillaEdge(PickleContext context)
+        {
+            context.Assert(
+                phasedMechWaveUsedEdgeAnchor,
+                "A staged mechanoid wave appeared outside the resolved vanilla edge region.");
         }
 
         [When("I compare mech cluster generation with and without compression at {int} points")]
@@ -302,6 +426,13 @@ namespace ImmersiveRaidCompression.PickleTests
                     : entity.GetType().FullName + "|" + entity.pos)
                 .OrderBy(value => value)
                 .ToList();
+        }
+
+        private static int DistanceToMapEdge(IntVec3 cell, Map map)
+        {
+            return System.Math.Min(
+                System.Math.Min(cell.x, map.Size.x - 1 - cell.x),
+                System.Math.Min(cell.z, map.Size.z - 1 - cell.z));
         }
     }
 }

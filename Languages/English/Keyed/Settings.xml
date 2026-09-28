@@ -4,6 +4,8 @@
   <IRC_EnableHumanRaidsDesc>Conservatively replaces pairs of low-tier raiders with a stronger vanilla pawn kind from the same faction group. No combat stat buffs are added.</IRC_EnableHumanRaidsDesc>
   <IRC_EnableMechanoidRaids>Compress oversized mechanoid raids</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>Promotes mechanoid models within the same vanilla group while preserving breachers and excluding mech bosses as budget fillers.</IRC_EnableMechanoidRaidsDesc>
+  <IRC_EnablePhasedMechanoidWaves>Phase homogeneous mechanoid swarms</IRC_EnablePhasedMechanoidWaves>
+  <IRC_EnablePhasedMechanoidWavesDesc>For pure-role swarms using safe edge arrivals, holds excess vanilla-generated mechs for later waves. Breach, boss-led, center/random drop, grouped, and water arrivals stay vanilla.</IRC_EnablePhasedMechanoidWavesDesc>
   <IRC_EnableManhunterPacks>Compress oversized manhunter packs</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>Only uses a stronger vanilla animal with compatible behavior, speed, body size, armor, and abilities. Keeps the vanilla pack when none exists. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>Compress mech cluster defenders</IRC_EnableMechClusters>
@@ -11,6 +13,8 @@
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>Mechanoid soft pawn cap: {0}</IRC_MechanoidSoftPawnCap>
+  <IRC_MechWaveTrigger>Next mech wave at remaining active power: {0}%</IRC_MechWaveTrigger>
+  <IRC_MechWaveDelay>Minimum delay between mech waves: {0} seconds</IRC_MechWaveDelay>
   <IRC_ManhunterSoftPawnCap>Manhunter soft pawn cap: {0}</IRC_ManhunterSoftPawnCap>
   <IRC_MinManhunterPoints>Minimum manhunter points: {0}</IRC_MinManhunterPoints>
   <IRC_MechClusterSoftPawnCap>Mech cluster soft pawn cap: {0}</IRC_MechClusterSoftPawnCap>
@@ -30,6 +34,9 @@
   <IRC_HistoryReason>Reason: {0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>Tactical identity: {0}</IRC_HistoryIdentity>
   <IRC_HistoryClassification>Mech raid classification: {0}</IRC_HistoryClassification>
+  <IRC_HistoryWave>Phased reinforcement: {0}</IRC_HistoryWave>
+  <IRC_WavePlanSummary>first wave {0}; deferred {1}; vanilla arrival {2}; reserved edge anchor {3}</IRC_WavePlanSummary>
+  <IRC_WaveReleasedSummary>wave {0} released {1}; {2} still deferred; vanilla arrival {3}; reserved edge anchor {4}</IRC_WaveReleasedSummary>
   <IRC_MechClassificationSummary>{0}; planned treatment: {1}; strategy: {2}; dominant role: {3} ({4}%)</IRC_MechClassificationSummary>
   <IRC_MechArchetype_Mixed>mixed force</IRC_MechArchetype_Mixed>
   <IRC_MechArchetype_HomogeneousMelee>scyther swarm</IRC_MechArchetype_HomogeneousMelee>

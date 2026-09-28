@@ -37,6 +37,17 @@ Feature: Immersive Raid Compression runtime smoke
     Then the mechanoid classifier separates swarms, mixed forces, breaches, and boss-led forces
     And no errors were logged
 
+  Scenario: a homogeneous mechanoid swarm arrives in controlled edge waves
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When I stage a homogeneous mechanoid edge wave at 10000 points
+    Then the homogeneous mechanoid force is split into an active and deferred force
+    And the staged mechanoid waves use the resolved vanilla edge region
+    When I defeat the active first mechanoid wave
+    And I wait 660 ticks
+    Then the next mechanoid wave releases automatically
+    And no errors were logged
+
   Scenario: a high-point manhunter pack uses a stronger vanilla animal
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

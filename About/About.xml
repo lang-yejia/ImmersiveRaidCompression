@@ -3,7 +3,7 @@
   <name>Immersive Raid Compression</name>
   <author>lyj</author>
   <packageId>langyejia.immersiveraidcompression</packageId>
-  <modVersion>0.5.0</modVersion>
+  <modVersion>0.6.0</modVersion>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
@@ -18,7 +18,7 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Reduces oversized late-game human raids, mechanoid raids, manhunter packs, and mech cluster defenders with fewer, stronger vanilla or official-DLC pawn kinds while preserving each threat's tactical roles and special mechanics. Mechanoid raids are now classified as homogeneous swarms, mixed forces, breach forces, or boss-led forces before future arrival-aware wave handling is allowed. Mech cluster buildings and activation rules remain untouched. An in-game audit page shows every before/after composition, tactical-identity proof, classification, and safe fallback. It does not add hidden combat stat buffs.
+  <description>Reduces oversized late-game human raids, mechanoid raids, manhunter packs, and mech cluster defenders without hidden stat buffs. Homogeneous pure-role mechanoid swarms using vanilla edge-walk or edge-drop arrival can enter in controlled waves from the original edge anchor as active combat power falls. Mixed forces use same-role vanilla promotion. Breach, boss-led, center/random drop, grouped, and water-arrival raids stay outside generic wave handling. Deferred mechs and wave state are saved. The in-game audit page shows classification, wave state, before/after composition, and tactical proof.
 
-通过使用派系原本拥有的高阶人类兵种、机械体型号或战术特征相近的官方动物，减少后期人类、机械体、食人动物和机械集群防卫单位的数量，同时保留每类袭击原有的职责与特殊机制。机械袭击会先区分单一机械海、混编、破墙和头目带队，只有安全类别才可进入后续的分批增援阶段。机械集群建筑和唤醒规则完全不变；不添加隐藏战斗属性 Buff。</description>
+通过原版高阶单位替换或安全的分批入场，减少后期人类、机械体、食人动物和机械集群同时存在的单位数，不添加隐藏属性 Buff。采用原版地图边缘步入或边缘空投的单一职责机械海，会在有效战力下降时从原始边缘锚点继续增援；混编继续使用同职责原版高阶替换。破墙、头目、中心/随机空投、分组及水中出现不会进入通用分批。待增援机械体和波次状态会写入存档，记录页面显示完整分类与波次过程。</description>
 </ModMetaData>

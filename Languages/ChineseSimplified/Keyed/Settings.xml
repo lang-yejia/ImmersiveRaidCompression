@@ -4,6 +4,8 @@
   <IRC_EnableHumanRaidsDesc>保守地把两个低阶袭击者替换成同一派系编队中的一个高阶原版兵种，不添加战斗属性 Buff。</IRC_EnableHumanRaidsDesc>
   <IRC_EnableMechanoidRaids>压缩规模过大的机械族袭击</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>在同一原版编队中晋升机械体型号，保留破墙单位并禁止用机械领主填充预算。</IRC_EnableMechanoidRaidsDesc>
+  <IRC_EnablePhasedMechanoidWaves>将同质机械海分批入场</IRC_EnablePhasedMechanoidWaves>
+  <IRC_EnablePhasedMechanoidWavesDesc>仅对采用安全地图边缘入场的单一职责机械海保留部分原版已生成机械体，并在后续波次释放。破墙、头目、中心/随机空投、分组和水中出现保持原版。</IRC_EnablePhasedMechanoidWavesDesc>
   <IRC_EnableManhunterPacks>压缩规模过大的食人动物群</IRC_EnableManhunterPacks>
   <IRC_EnableManhunterPacksDesc>只允许使用行为、速度、体型、护甲和特殊能力相近的高价值原版动物；没有兼容候选时保持原版。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>压缩机械集群中的机械体</IRC_EnableMechClusters>
@@ -11,6 +13,8 @@
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_MechanoidSoftPawnCap>机械体软上限：{0}</IRC_MechanoidSoftPawnCap>
+  <IRC_MechWaveTrigger>下一波触发时的剩余有效战力：{0}%</IRC_MechWaveTrigger>
+  <IRC_MechWaveDelay>机械增援最短间隔：{0} 秒</IRC_MechWaveDelay>
   <IRC_ManhunterSoftPawnCap>食人动物软上限：{0}</IRC_ManhunterSoftPawnCap>
   <IRC_MinManhunterPoints>食人动物最低生效点数：{0}</IRC_MinManhunterPoints>
   <IRC_MechClusterSoftPawnCap>机械集群单位软上限：{0}</IRC_MechClusterSoftPawnCap>
@@ -30,6 +34,9 @@
   <IRC_HistoryReason>原因：{0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>战术身份：{0}</IRC_HistoryIdentity>
   <IRC_HistoryClassification>机械袭击分类：{0}</IRC_HistoryClassification>
+  <IRC_HistoryWave>分批增援：{0}</IRC_HistoryWave>
+  <IRC_WavePlanSummary>首批 {0}；待增援 {1}；原版入场方式 {2}；保留的地图边缘锚点 {3}</IRC_WavePlanSummary>
+  <IRC_WaveReleasedSummary>第 {0} 波释放 {1}；仍待增援 {2}；原版入场方式 {3}；保留的地图边缘锚点 {4}</IRC_WaveReleasedSummary>
   <IRC_MechClassificationSummary>{0}；规划处理：{1}；原版策略：{2}；主导职责：{3}（{4}%）</IRC_MechClassificationSummary>
   <IRC_MechArchetype_Mixed>混合编队</IRC_MechArchetype_Mixed>
   <IRC_MechArchetype_HomogeneousMelee>飞螳海</IRC_MechArchetype_HomogeneousMelee>
