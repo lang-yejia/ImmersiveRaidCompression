@@ -43,7 +43,7 @@ namespace ImmersiveRaidCompression
                 || parms?.target is not Map map
                 || parms.faction?.def != FactionDefOf.Mechanoid
                 || parms.points < settings.minimumRaidPoints
-                || pawns.Count <= settings.mechanoidSoftPawnCap
+                || pawns.Count <= settings.mechWaveSplitCountThreshold
                 || !ArrivalModeSupported(parms.raidArrivalMode))
             {
                 return false;
@@ -57,14 +57,21 @@ namespace ImmersiveRaidCompression
                 return false;
             }
 
-            int firstWaveSize = Math.Max(1, settings.mechanoidSoftPawnCap);
-            List<Pawn> firstWave = TakeBalancedFirstWave(pawns, firstWaveSize);
-            if (firstWave.Count >= pawns.Count)
+            MechWavePartition partition = MechWavePlanner.Build(
+                pawns,
+                settings.mechanoidSoftPawnCap,
+                settings.mechWaveSplitCountThreshold,
+                settings.mechWaveMinimumPoints,
+                settings.mechWaveBudgetFraction,
+                parms.points);
+            if (partition == null)
             {
                 return false;
             }
 
-            List<Pawn> deferred = pawns.Except(firstWave).ToList();
+            List<Pawn> firstWave = partition.Waves[0];
+            List<List<Pawn>> laterWaves = partition.Waves.Skip(1).ToList();
+            List<Pawn> deferred = laterWaves.SelectMany(wave => wave).ToList();
             pawns.Clear();
             pawns.AddRange(firstWave);
             foreach (Pawn pawn in deferred)
@@ -90,22 +97,28 @@ namespace ImmersiveRaidCompression
                 parms.raidStrategy,
                 parms.spawnCenter,
                 firstWave,
-                deferred,
-                settings.mechanoidSoftPawnCap,
+                laterWaves,
+                partition.MinimumWavePoints,
                 settings.mechWaveTriggerFraction,
                 Find.TickManager.TicksGame + settings.mechWaveMinimumDelayTicks);
             component.AddPlan(plan);
             CompressionTelemetry.AttachWavePlan(
                 plan.TelemetryId,
+                partition.Waves.Count,
                 firstWave.Count,
+                partition.WavePoints[0],
                 deferred.Count,
+                partition.MinimumWavePoints,
                 parms.raidArrivalMode.defName,
                 parms.spawnCenter);
             if (settings.verboseLogging)
             {
                 Log.Message(
-                    "[Immersive Raid Compression] staged homogeneous mech raid: first wave "
-                    + firstWave.Count + ", deferred " + deferred.Count + ", arrival "
+                    "[Immersive Raid Compression] staged homogeneous mech raid: "
+                    + partition.Waves.Count + " waves, first wave " + firstWave.Count
+                    + " pawns / " + partition.WavePoints[0].ToString("F0")
+                    + " points, minimum " + partition.MinimumWavePoints.ToString("F0")
+                    + " points, deferred " + deferred.Count + ", arrival "
                     + parms.raidArrivalMode.defName + ", edge anchor " + parms.spawnCenter + ".");
             }
             return true;
@@ -144,30 +157,91 @@ namespace ImmersiveRaidCompression
                 || arrivalMode == PawnsArrivalModeDefOf.EdgeDrop;
         }
 
-        private static List<Pawn> TakeBalancedFirstWave(List<Pawn> pawns, int count)
+    }
+
+    public sealed class MechWavePartition
+    {
+        public List<List<Pawn>> Waves { get; }
+        public List<float> WavePoints { get; }
+        public float MinimumWavePoints { get; }
+
+        public MechWavePartition(List<List<Pawn>> waves, float minimumWavePoints)
         {
-            List<IGrouping<PawnKindDef, Pawn>> groups = pawns
-                .GroupBy(pawn => pawn.kindDef)
-                .OrderByDescending(group => group.Count())
-                .ThenBy(group => group.Key.defName)
-                .ToList();
-            Dictionary<PawnKindDef, Queue<Pawn>> remaining = groups.ToDictionary(
-                group => group.Key,
-                group => new Queue<Pawn>(group));
-            List<Pawn> result = new List<Pawn>();
-            while (result.Count < count && remaining.Count > 0)
+            Waves = waves;
+            WavePoints = waves.Select(MechWavePlanner.CombatPower).ToList();
+            MinimumWavePoints = minimumWavePoints;
+        }
+    }
+
+    public static class MechWavePlanner
+    {
+        private const float PointEpsilon = 0.01f;
+
+        public static MechWavePartition Build(
+            List<Pawn> pawns,
+            int targetWavePawnCount,
+            int splitCountThreshold,
+            float absoluteMinimumPoints,
+            float budgetFraction,
+            float adjustedRaidPoints)
+        {
+            if (pawns == null || pawns.Count <= Math.Max(1, splitCountThreshold))
             {
-                PawnKindDef nextKind = remaining
-                    .OrderByDescending(pair => pair.Value.Count)
-                    .ThenBy(pair => pair.Key.defName)
-                    .First().Key;
-                result.Add(remaining[nextKind].Dequeue());
-                if (remaining[nextKind].Count == 0)
-                {
-                    remaining.Remove(nextKind);
-                }
+                return null;
             }
-            return result;
+
+            float minimumPoints = Math.Max(0f, Math.Max(absoluteMinimumPoints, adjustedRaidPoints * budgetFraction));
+            float totalPoints = CombatPower(pawns);
+            // Long reinforcement chains feel like delay rather than pressure. An
+            // eligible swarm therefore becomes two or three substantial waves only.
+            int desiredWaveCount = Math.Min(
+                3,
+                Math.Max(2, (int)Math.Ceiling(pawns.Count / (double)Math.Max(1, targetWavePawnCount))));
+            int maximumQualifiedWaves = minimumPoints <= PointEpsilon
+                ? desiredWaveCount
+                : (int)Math.Floor((totalPoints + PointEpsilon) / minimumPoints);
+            int waveCount = Math.Min(desiredWaveCount, maximumQualifiedWaves);
+
+            // A too-small tail is not emitted. Re-plan with one fewer bucket until
+            // every wave clears the dynamic point floor; this is the smart merge.
+            while (waveCount >= 2)
+            {
+                List<List<Pawn>> waves = DistributeByPower(pawns, waveCount);
+                if (waves.All(wave => CombatPower(wave) + PointEpsilon >= minimumPoints))
+                {
+                    return new MechWavePartition(waves, minimumPoints);
+                }
+                waveCount--;
+            }
+
+            return null;
+        }
+
+        public static float CombatPower(IEnumerable<Pawn> pawns)
+        {
+            return pawns.Where(pawn => pawn?.kindDef != null).Sum(pawn => pawn.kindDef.combatPower);
+        }
+
+        private static List<List<Pawn>> DistributeByPower(List<Pawn> pawns, int waveCount)
+        {
+            List<List<Pawn>> waves = Enumerable.Range(0, waveCount)
+                .Select(_ => new List<Pawn>())
+                .ToList();
+            float[] powers = new float[waveCount];
+            foreach (Pawn pawn in pawns
+                .OrderByDescending(candidate => candidate.kindDef.combatPower)
+                .ThenBy(candidate => candidate.kindDef.defName)
+                .ThenBy(candidate => candidate.thingIDNumber))
+            {
+                int target = Enumerable.Range(0, waveCount)
+                    .OrderBy(index => powers[index])
+                    .ThenBy(index => waves[index].Count)
+                    .ThenBy(index => index)
+                    .First();
+                waves[target].Add(pawn);
+                powers[target] += pawn.kindDef.combatPower;
+            }
+            return waves;
         }
     }
 
@@ -177,6 +251,10 @@ namespace ImmersiveRaidCompression
 
         public int PendingPlanCount => plans.Count;
         public int PendingPawnCount => plans.Sum(plan => plan.DeferredCount);
+        public int PendingWaveCount => plans.Sum(plan => plan.RemainingWaveCount);
+        public int TotalPlannedWaveCount => plans.Sum(plan => plan.RemainingWaveCount + 1);
+        public bool AllPlannedWavesMeetMinimum => plans.All(plan => plan.AllPlannedWavesMeetMinimum);
+        public float MinimumPlannedWavePoints => plans.Count == 0 ? 0f : plans.Min(plan => plan.MinimumWavePoints);
 
         public MechRaidReinforcementComponent(Game game)
         {
@@ -239,6 +317,10 @@ namespace ImmersiveRaidCompression
         private Lord lord;
         private List<Pawn> releasedPawns = new List<Pawn>();
         private List<Pawn> deferredPawns = new List<Pawn>();
+        private List<int> remainingWaveSizes = new List<int>();
+        private List<float> plannedWavePoints = new List<float>();
+        private float minimumWavePoints;
+        // Kept only for migrating v0.6 saves.
         private int waveSize;
         private float triggerFraction;
         private float initialWavePower;
@@ -247,6 +329,10 @@ namespace ImmersiveRaidCompression
         private string telemetryId;
 
         public int DeferredCount => deferredPawns?.Count ?? 0;
+        public int RemainingWaveCount => remainingWaveSizes?.Count ?? 0;
+        public float MinimumWavePoints => minimumWavePoints;
+        public bool AllPlannedWavesMeetMinimum => plannedWavePoints != null
+            && plannedWavePoints.All(points => points + 0.01f >= minimumWavePoints);
         public string TelemetryId => telemetryId;
         public int NextReleaseTick => nextReleaseTick;
         public float ActiveCombatPower => releasedPawns
@@ -269,8 +355,8 @@ namespace ImmersiveRaidCompression
             RaidStrategyDef raidStrategy,
             IntVec3 spawnCenter,
             List<Pawn> firstWave,
-            List<Pawn> deferredPawns,
-            int waveSize,
+            List<List<Pawn>> laterWaves,
+            float minimumWavePoints,
             float triggerFraction,
             int nextReleaseTick)
         {
@@ -280,11 +366,15 @@ namespace ImmersiveRaidCompression
             this.raidStrategy = raidStrategy;
             this.spawnCenter = spawnCenter;
             releasedPawns = new List<Pawn>(firstWave);
-            this.deferredPawns = new List<Pawn>(deferredPawns);
-            this.waveSize = waveSize;
+            deferredPawns = laterWaves.SelectMany(wave => wave).ToList();
+            remainingWaveSizes = laterWaves.Select(wave => wave.Count).ToList();
+            plannedWavePoints = new[] { MechWavePlanner.CombatPower(firstWave) }
+                .Concat(laterWaves.Select(MechWavePlanner.CombatPower))
+                .ToList();
+            this.minimumWavePoints = minimumWavePoints;
             this.triggerFraction = triggerFraction;
             this.nextReleaseTick = nextReleaseTick;
-            initialWavePower = firstWave.Sum(pawn => pawn.kindDef.combatPower);
+            initialWavePower = MechWavePlanner.CombatPower(firstWave);
             telemetryId = Guid.NewGuid().ToString("N");
         }
 
@@ -309,18 +399,16 @@ namespace ImmersiveRaidCompression
         {
             if (deferredPawns == null
                 || deferredPawns.Count == 0
+                || remainingWaveSizes == null
+                || remainingWaveSizes.Count == 0
                 || !MapStillAvailable()
+                || lord == null
                 || ActiveCombatPower > ReleaseThreshold)
             {
                 return false;
             }
 
-            int activeCount = releasedPawns.Count(pawn => pawn != null
-                && !pawn.Dead
-                && !pawn.Downed
-                && pawn.SpawnedOrAnyParentSpawned
-                && pawn.MapHeld == map);
-            int batchSize = Math.Min(deferredPawns.Count, Math.Max(1, waveSize - activeCount));
+            int batchSize = Math.Min(deferredPawns.Count, remainingWaveSizes[0]);
             List<Pawn> batch = deferredPawns.Take(batchSize).ToList();
             foreach (Pawn pawn in batch)
             {
@@ -345,7 +433,7 @@ namespace ImmersiveRaidCompression
             try
             {
                 MechRaidWaveController.ArriveDeferredWave(batch, parms);
-                AttachBatchToLord(batch, parms);
+                AttachBatchToOriginalLord(batch);
             }
             catch (Exception exception)
             {
@@ -359,6 +447,7 @@ namespace ImmersiveRaidCompression
             }
 
             releasedPawns.AddRange(batch);
+            remainingWaveSizes.RemoveAt(0);
             releasedWaveCount++;
             nextReleaseTick = Find.TickManager.TicksGame
                 + (CompressionMod.Settings?.mechWaveMinimumDelayTicks ?? 600);
@@ -366,7 +455,9 @@ namespace ImmersiveRaidCompression
                 telemetryId,
                 releasedWaveCount,
                 batch.Count,
+                MechWavePlanner.CombatPower(batch),
                 deferredPawns.Count,
+                RemainingWaveCount,
                 arrivalMode.defName,
                 spawnCenter);
             if (CompressionMod.Settings?.verboseLogging == true)
@@ -387,19 +478,30 @@ namespace ImmersiveRaidCompression
                 Find.WorldPawns.RemoveAndDiscardPawnViaGC(pawn);
             }
             deferredPawns.Clear();
+            remainingWaveSizes.Clear();
         }
 
-        private void AttachBatchToLord(List<Pawn> batch, IncidentParms parms)
+        private void AttachBatchToOriginalLord(List<Pawn> batch)
         {
-            TryAttachLord();
-            if (lord != null && batch.All(lord.CanAddPawn))
+            if (lord == null)
             {
-                lord.AddPawns(batch);
-                return;
+                throw new InvalidOperationException("The original raid Lord is unavailable.");
             }
 
-            raidStrategy.Worker.MakeLords(parms, batch);
-            lord = batch.Select(LordUtility.GetLord).FirstOrDefault(candidate => candidate != null);
+            foreach (Pawn pawn in batch)
+            {
+                Lord currentLord = LordUtility.GetLord(pawn);
+                if (currentLord == lord)
+                {
+                    continue;
+                }
+                if (currentLord != null || !lord.CanAddPawn(pawn))
+                {
+                    throw new InvalidOperationException(
+                        "A reinforcement pawn could not join the original raid Lord.");
+                }
+                lord.AddPawn(pawn);
+            }
         }
 
         public void ExposeData()
@@ -412,6 +514,9 @@ namespace ImmersiveRaidCompression
             Scribe_References.Look(ref lord, "lord");
             Scribe_Collections.Look(ref releasedPawns, "releasedPawns", LookMode.Reference);
             Scribe_Collections.Look(ref deferredPawns, "deferredPawns", LookMode.Reference);
+            Scribe_Collections.Look(ref remainingWaveSizes, "remainingWaveSizes", LookMode.Value);
+            Scribe_Collections.Look(ref plannedWavePoints, "plannedWavePoints", LookMode.Value);
+            Scribe_Values.Look(ref minimumWavePoints, "minimumWavePoints");
             Scribe_Values.Look(ref waveSize, "waveSize", 24);
             Scribe_Values.Look(ref triggerFraction, "triggerFraction", 0.45f);
             Scribe_Values.Look(ref initialWavePower, "initialWavePower");
@@ -422,6 +527,26 @@ namespace ImmersiveRaidCompression
             {
                 releasedPawns ??= new List<Pawn>();
                 deferredPawns ??= new List<Pawn>();
+                remainingWaveSizes ??= new List<int>();
+                plannedWavePoints ??= new List<float>();
+                if (deferredPawns.Count > 0 && remainingWaveSizes.Count == 0)
+                {
+                    int legacySize = Math.Max(1, waveSize);
+                    for (int remaining = deferredPawns.Count; remaining > 0; remaining -= legacySize)
+                    {
+                        remainingWaveSizes.Add(Math.Min(legacySize, remaining));
+                    }
+                }
+                if (plannedWavePoints.Count == 0)
+                {
+                    plannedWavePoints.Add(initialWavePower);
+                    int offset = 0;
+                    foreach (int size in remainingWaveSizes)
+                    {
+                        plannedWavePoints.Add(MechWavePlanner.CombatPower(deferredPawns.Skip(offset).Take(size)));
+                        offset += size;
+                    }
+                }
             }
         }
     }

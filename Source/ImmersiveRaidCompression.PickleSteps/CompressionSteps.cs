@@ -3,6 +3,7 @@ using System.Linq;
 using RimWorks.Pickle;
 using RimWorld;
 using Verse;
+using Verse.AI.Group;
 
 namespace ImmersiveRaidCompression.PickleTests
 {
@@ -12,10 +13,15 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool mechClusterStructureMatched;
         private bool mechClusterPositionsCameFromVanillaSketch;
         private bool mechRaidClassifierMatchedExpectedFamilies;
+        private bool mechBossPromotionRulesAreBounded;
         private bool phasedMechWaveSplitAndReleased;
         private bool phasedMechWaveUsedEdgeAnchor;
+        private bool phasedMechWavesMeetDynamicMinimum;
+        private bool phasedMechUndersizedTailsWereMerged;
+        private bool phasedMechUnsafeSplitFallsBackToVanilla;
         private List<Pawn> phasedMechFirstWave;
         private int phasedMechDeferredBeforeRelease;
+        private Lord phasedMechOriginalLord;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -30,6 +36,9 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.mechClusterSoftPawnCap = 8;
             CompressionMod.Settings.enablePhasedMechanoidWaves = true;
             CompressionMod.Settings.mechanoidSoftPawnCap = 8;
+            CompressionMod.Settings.mechWaveSplitCountThreshold = 12;
+            CompressionMod.Settings.mechWaveMinimumPoints = 1000f;
+            CompressionMod.Settings.mechWaveBudgetFraction = 0.15f;
             CompressionMod.Settings.mechWaveTriggerFraction = 0.45f;
             CompressionMod.Settings.mechWaveMinimumDelayTicks = 600;
         }
@@ -108,6 +117,26 @@ namespace ImmersiveRaidCompression.PickleTests
                 && bossLed.Archetype == MechRaidArchetype.BossLed
                 && bossLed.Treatment == MechRaidTreatment.ProtectedStrategy
                 && arrivalRulesMatched;
+            float cappedChance = MechBossPromotionPolicy.PromotionChance(50f, 100f);
+            bool atLeastOneWinningSeed = Enumerable.Range(0, 1000)
+                .Any(seed => MechBossPromotionPolicy.RollAllowsPromotion(seed, cappedChance));
+            bool atLeastOneLosingSeed = Enumerable.Range(0, 1000)
+                .Any(seed => !MechBossPromotionPolicy.RollAllowsPromotion(seed, cappedChance));
+            mechBossPromotionRulesAreBounded =
+                MechanoidRaidCompressionPolicy.Instance.IsProtectedKind(warqueen)
+                && !MechanoidRaidCompressionPolicy.Instance.IsForbiddenReplacementKind(warqueen)
+                && System.Math.Abs(cappedChance - 0.10f) < 0.0001f
+                && System.Math.Abs(MechBossPromotionPolicy.PromotionChance(1f, 100f) - 0.01f) < 0.0001f
+                && atLeastOneWinningSeed
+                && atLeastOneLosingSeed;
+        }
+
+        [Then("mixed mechanoid boss promotion is rare and bounded")]
+        public void BossPromotionIsVanillaBounded(PickleContext context)
+        {
+            context.Assert(
+                mechBossPromotionRulesAreBounded,
+                "The boss promotion rules did not preserve bosses while enforcing the ten-percent deterministic cap.");
         }
 
         [Then("the mechanoid classifier separates swarms, mixed forces, breaches, and boss-led forces")]
@@ -154,8 +183,24 @@ namespace ImmersiveRaidCompression.PickleTests
             List<Pawn> pawns = maker.GeneratePawns(groupParms).ToList();
             int originalCount = pawns.Count;
             context.Assert(
-                originalCount > CompressionMod.Settings.mechanoidSoftPawnCap,
-                "The scyther-only maker did not exceed the configured wave cap.");
+                originalCount > CompressionMod.Settings.mechWaveSplitCountThreshold,
+                "The scyther-only maker did not exceed the configured split threshold.");
+            float generatedPower = MechWavePlanner.CombatPower(pawns);
+            phasedMechUnsafeSplitFallsBackToVanilla =
+                MechWavePlanner.Build(
+                    pawns,
+                    CompressionMod.Settings.mechanoidSoftPawnCap,
+                    originalCount,
+                    0f,
+                    0f,
+                    points) == null
+                && MechWavePlanner.Build(
+                    pawns,
+                    CompressionMod.Settings.mechanoidSoftPawnCap,
+                    1,
+                    generatedPower * 0.75f,
+                    0f,
+                    points) == null;
 
             IncidentParms incidentParms = new IncidentParms
             {
@@ -180,18 +225,48 @@ namespace ImmersiveRaidCompression.PickleTests
             phasedMechFirstWave = new List<Pawn>(pawns);
             phasedMechDeferredBeforeRelease = component.PendingPawnCount;
             phasedMechWaveSplitAndReleased =
-                firstWaveCount <= CompressionMod.Settings.mechanoidSoftPawnCap
+                component.PendingPlanCount == 1
                 && phasedMechDeferredBeforeRelease == originalCount - firstWaveCount;
+            float dynamicMinimum = System.Math.Max(
+                CompressionMod.Settings.mechWaveMinimumPoints,
+                points * CompressionMod.Settings.mechWaveBudgetFraction);
+            int naiveWaveCount = (int)System.Math.Ceiling(
+                originalCount / (double)CompressionMod.Settings.mechanoidSoftPawnCap);
+            phasedMechWavesMeetDynamicMinimum = component.AllPlannedWavesMeetMinimum
+                && component.MinimumPlannedWavePoints + 0.01f >= dynamicMinimum
+                && MechWavePlanner.CombatPower(pawns) + 0.01f >= dynamicMinimum
+                && component.TotalPlannedWaveCount >= 2
+                && component.TotalPlannedWaveCount <= 3;
+            phasedMechUndersizedTailsWereMerged = component.TotalPlannedWaveCount >= 2
+                && component.TotalPlannedWaveCount < naiveWaveCount;
             phasedMechWaveUsedEdgeAnchor = DistanceToMapEdge(anchor, map) <= 1
                 && map.mapPawns.AllPawnsSpawned
                     .Where(pawn => pawn.Faction == faction && !pawn.Dead)
                     .All(pawn => DistanceToMapEdge(pawn.Position, map) <= 20);
         }
 
+        [Then("every planned mechanoid wave meets the dynamic minimum and undersized tails are merged")]
+        public void PlannedWavesMeetDynamicMinimum(PickleContext context)
+        {
+            context.Assert(
+                phasedMechWavesMeetDynamicMinimum,
+                "At least one planned mechanoid wave fell below the dynamic point minimum.");
+            context.Assert(
+                phasedMechUndersizedTailsWereMerged,
+                "The planner did not merge undersized tail waves into qualified batches.");
+            context.Assert(
+                phasedMechUnsafeSplitFallsBackToVanilla,
+                "The planner did not keep the vanilla whole force when the count threshold or minimum-wave rule made splitting unsafe.");
+        }
+
         [When("I defeat the active first mechanoid wave")]
         public void DefeatActiveFirstMechanoidWave(PickleContext context)
         {
             context.Assert(phasedMechFirstWave != null, "No staged first wave was recorded.");
+            phasedMechOriginalLord = phasedMechFirstWave
+                .Select(LordUtility.GetLord)
+                .FirstOrDefault(candidate => candidate != null);
+            context.Assert(phasedMechOriginalLord != null, "The original mechanoid wave has no raid Lord.");
             foreach (Pawn pawn in phasedMechFirstWave.Where(pawn => pawn.Spawned && !pawn.Dead).ToList())
             {
                 pawn.Kill(null);
@@ -216,6 +291,13 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionSnapshot record = CompressionTelemetry.History.FirstOrDefault(
                 snapshot => !string.IsNullOrWhiteSpace(snapshot.WaveSummary));
             context.Assert(record != null, "The reinforcement release was not recorded in compression history.");
+            List<Pawn> reinforcements = Find.CurrentMap.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction?.def == FactionDefOf.Mechanoid && !pawn.Dead)
+                .ToList();
+            context.Assert(reinforcements.Count > 0, "No live reinforcement pawns were found.");
+            context.Assert(
+                reinforcements.All(pawn => LordUtility.GetLord(pawn) == phasedMechOriginalLord),
+                "A reinforcement did not inherit the original raid Lord and its current wait/attack state.");
         }
 
         [Then("the staged mechanoid waves use the resolved vanilla edge region")]
@@ -225,6 +307,7 @@ namespace ImmersiveRaidCompression.PickleTests
                 phasedMechWaveUsedEdgeAnchor,
                 "A staged mechanoid wave appeared outside the resolved vanilla edge region.");
         }
+
 
         [When("I compare mech cluster generation with and without compression at {int} points")]
         public void CompareMechClusterGeneration(PickleContext context, int points)
@@ -304,6 +387,18 @@ namespace ImmersiveRaidCompression.PickleTests
                 snapshot.FinalBossCount == snapshot.OriginalBossCount,
                 "Compression changed the boss count from " + snapshot.OriginalBossCount
                 + " to " + snapshot.FinalBossCount + ".");
+        }
+
+        [Then("the last compression introduced at most one mechanoid boss")]
+        public void AtMostOneMechanoidBossIntroduced(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful raid compression was recorded.");
+            context.Assert(
+                snapshot.FinalBossCount >= snapshot.OriginalBossCount
+                && snapshot.FinalBossCount <= snapshot.OriginalBossCount + 1,
+                "Compression changed the boss count outside the permitted zero-or-one promotion: "
+                + snapshot.OriginalBossCount + " -> " + snapshot.FinalBossCount + ".");
         }
 
         [Then("compression history contains detailed before and after compositions")]

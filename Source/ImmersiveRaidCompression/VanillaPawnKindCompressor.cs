@@ -26,7 +26,7 @@ namespace ImmersiveRaidCompression
                 parms.raidStrategy,
                 parms.groupKind);
 
-            List<PawnGenOptionWithXenotype> candidates = PawnGroupMakerUtility.GetOptions(
+            List<PawnGenOptionWithXenotype> vanillaCandidates = PawnGroupMakerUtility.GetOptions(
                     parms,
                     parms.faction.def,
                     sourceOptions,
@@ -34,6 +34,15 @@ namespace ImmersiveRaidCompression
                     pointsTotal,
                     maxPawnCost)
                 .Where(policy.IsCandidateAllowed)
+                .ToList();
+            HashSet<PawnKindDef> permittedBossPromotions = MechBossPromotionPolicy.SelectPermittedBossKinds(
+                original,
+                vanillaCandidates,
+                parms,
+                policy);
+            List<PawnGenOptionWithXenotype> candidates = vanillaCandidates
+                .Where(candidate => !candidate.Option.kind.isBoss
+                    || permittedBossPromotions.Contains(candidate.Option.kind))
                 .OrderByDescending(candidate => candidate.Cost)
                 .ThenByDescending(candidate => candidate.SelectionWeight)
                 .ToList();
@@ -42,7 +51,13 @@ namespace ImmersiveRaidCompression
             float minimumAllowedCost = originalCost * MinimumRetainedCostFraction;
             while (chosen.Count > targetCount)
             {
-                if (!TryMergeOneGroup(chosen, candidates, parms, policy, minimumAllowedCost))
+                if (!TryMergeOneGroup(
+                        chosen,
+                        candidates,
+                        parms,
+                        policy,
+                        minimumAllowedCost,
+                        permittedBossPromotions))
                 {
                     break;
                 }
@@ -52,7 +67,13 @@ namespace ImmersiveRaidCompression
 
             if (changed)
             {
-                SpendRemainingBudget(chosen, candidates, parms, policy, System.Math.Min(pointsTotal, originalCost));
+                SpendRemainingBudget(
+                    chosen,
+                    candidates,
+                    parms,
+                    policy,
+                    System.Math.Min(pointsTotal, originalCost),
+                    permittedBossPromotions);
             }
 
             float finalCost = TotalCost(chosen);
@@ -69,6 +90,7 @@ namespace ImmersiveRaidCompression
                     original,
                     chosen,
                     policy,
+                    permittedBossPromotions,
                     out string identityFailure))
             {
                 if (CompressionMod.Settings?.verboseLogging == true)
@@ -93,7 +115,8 @@ namespace ImmersiveRaidCompression
             List<PawnGenOptionWithXenotype> candidates,
             PawnGroupMakerParms parms,
             ICompressionPolicy policy,
-            float minimumAllowedCost)
+            float minimumAllowedCost,
+            ISet<PawnKindDef> permittedBossPromotions)
         {
             float currentCost = TotalCost(chosen);
             List<List<IndexedOption>> mergeable = chosen
@@ -116,6 +139,7 @@ namespace ImmersiveRaidCompression
                     .ToList();
 
                 PawnGenOptionWithXenotype? replacement = candidates
+                    .Where(candidate => BossCandidateAllowed(candidate, chosen, permittedBossPromotions))
                     .Where(candidate => policy.RoleFor(candidate) == mergeGroup[0].Role)
                     .Where(candidate => candidate.Cost > oldHighestCost + CostEpsilon)
                     .Where(candidate => candidate.Cost <= availableCost + CostEpsilon)
@@ -202,7 +226,8 @@ namespace ImmersiveRaidCompression
             List<PawnGenOptionWithXenotype> candidates,
             PawnGroupMakerParms parms,
             ICompressionPolicy policy,
-            float budget)
+            float budget,
+            ISet<PawnKindDef> permittedBossPromotions)
         {
             for (int pass = 0; pass < 100; pass++)
             {
@@ -227,7 +252,8 @@ namespace ImmersiveRaidCompression
                     foreach (PawnGenOptionWithXenotype candidate in candidates)
                     {
                         float delta = candidate.Cost - current.Cost;
-                        if (policy.RoleFor(candidate) != policy.RoleFor(current)
+                        if (!BossCandidateAllowed(candidate, chosen, permittedBossPromotions)
+                            || policy.RoleFor(candidate) != policy.RoleFor(current)
                             || delta <= CostEpsilon
                             || delta > remaining + CostEpsilon
                             || candidate.Cost > current.Cost * policy.MaximumUpgradeFactor + CostEpsilon
@@ -257,6 +283,16 @@ namespace ImmersiveRaidCompression
             return options.Sum(option => option.Cost);
         }
 
+        private static bool BossCandidateAllowed(
+            PawnGenOptionWithXenotype candidate,
+            List<PawnGenOptionWithXenotype> chosen,
+            ISet<PawnKindDef> permittedBossPromotions)
+        {
+            return !candidate.Option.kind.isBoss
+                || (permittedBossPromotions.Contains(candidate.Option.kind)
+                    && !chosen.Any(option => option.Option.kind.isBoss));
+        }
+
         private readonly struct IndexedOption
         {
             public readonly int Index;
@@ -284,6 +320,105 @@ namespace ImmersiveRaidCompression
                 Replacement = replacement;
                 Delta = delta;
                 Valid = true;
+            }
+        }
+    }
+
+    public static class MechBossPromotionPolicy
+    {
+        private const float MaximumPromotionChance = 0.10f;
+
+        public static HashSet<PawnKindDef> SelectPermittedBossKinds(
+            IReadOnlyList<PawnGenOptionWithXenotype> original,
+            IReadOnlyList<PawnGenOptionWithXenotype> vanillaCandidates,
+            PawnGroupMakerParms parms,
+            ICompressionPolicy policy)
+        {
+            HashSet<PawnKindDef> none = new HashSet<PawnKindDef>();
+            if (policy != MechanoidRaidCompressionPolicy.Instance
+                || original.Any(option => option.Option.kind.isBoss))
+            {
+                return none;
+            }
+
+            MechRaidClassification classification = MechRaidClassifier.Analyze(
+                original.Select(option => option.Option.kind),
+                parms.raidStrategy);
+            if (classification.Archetype != MechRaidArchetype.Mixed)
+            {
+                return none;
+            }
+
+            List<PawnGenOptionWithXenotype> bosses = vanillaCandidates
+                .Where(option => option.Option.kind.isBoss)
+                .GroupBy(option => option.Option.kind)
+                .Select(group => group.OrderByDescending(option => option.SelectionWeight).First())
+                .OrderBy(option => option.Option.kind.defName)
+                .ToList();
+            float totalWeight = vanillaCandidates.Sum(option => System.Math.Max(0f, option.SelectionWeight));
+            float bossWeight = bosses.Sum(option => System.Math.Max(0f, option.SelectionWeight));
+            if (bosses.Count == 0 || totalWeight <= 0f || bossWeight <= 0f)
+            {
+                return none;
+            }
+
+            float chance = PromotionChance(bossWeight, totalWeight);
+            int seed = parms.seed.GetValueOrDefault() ^ StableHash("boss-promotion");
+            if (!RollAllowsPromotion(seed, chance))
+            {
+                return none;
+            }
+
+            float selection = DeterministicUnit(seed ^ StableHash("boss-kind")) * bossWeight;
+            foreach (PawnGenOptionWithXenotype boss in bosses)
+            {
+                selection -= System.Math.Max(0f, boss.SelectionWeight);
+                if (selection <= 0f)
+                {
+                    return new HashSet<PawnKindDef> { boss.Option.kind };
+                }
+            }
+            return new HashSet<PawnKindDef> { bosses[bosses.Count - 1].Option.kind };
+        }
+
+        public static float PromotionChance(float bossWeight, float totalWeight)
+        {
+            if (bossWeight <= 0f || totalWeight <= 0f)
+            {
+                return 0f;
+            }
+            return System.Math.Min(MaximumPromotionChance, bossWeight / totalWeight);
+        }
+
+        public static bool RollAllowsPromotion(int seed, float chance)
+        {
+            return chance > 0f && DeterministicUnit(seed) < System.Math.Min(MaximumPromotionChance, chance);
+        }
+
+        private static float DeterministicUnit(int seed)
+        {
+            unchecked
+            {
+                uint value = (uint)seed;
+                value ^= value >> 16;
+                value *= 0x7feb352dU;
+                value ^= value >> 15;
+                value *= 0x846ca68bU;
+                value ^= value >> 16;
+                return (value & 0x00ffffffU) / 16777216f;
+            }
+        }
+
+        private static int StableHash(string value)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (char character in value)
+                {
+                    hash = hash * 31 + character;
+                }
+                return hash;
             }
         }
     }

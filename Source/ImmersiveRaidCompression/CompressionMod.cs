@@ -20,7 +20,7 @@ namespace ImmersiveRaidCompression
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 850f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 980f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
@@ -51,6 +51,12 @@ namespace ImmersiveRaidCompression
             Settings.humanSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.humanSoftPawnCap, 10, 100));
             listing.Label("IRC_MechanoidSoftPawnCap".Translate(Settings.mechanoidSoftPawnCap));
             Settings.mechanoidSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.mechanoidSoftPawnCap, 8, 60));
+            listing.Label("IRC_MechWaveSplitCount".Translate(Settings.mechWaveSplitCountThreshold));
+            Settings.mechWaveSplitCountThreshold = Mathf.RoundToInt(listing.Slider(Settings.mechWaveSplitCountThreshold, 12, 120));
+            listing.Label("IRC_MechWaveMinimumPoints".Translate(Settings.mechWaveMinimumPoints.ToString("F0")));
+            Settings.mechWaveMinimumPoints = Mathf.Round(listing.Slider(Settings.mechWaveMinimumPoints, 500f, 5000f) / 100f) * 100f;
+            listing.Label("IRC_MechWaveBudgetFraction".Translate((Settings.mechWaveBudgetFraction * 100f).ToString("F0")));
+            Settings.mechWaveBudgetFraction = Mathf.Round(listing.Slider(Settings.mechWaveBudgetFraction, 0.10f, 0.40f) * 20f) / 20f;
             listing.Label("IRC_MechWaveTrigger".Translate((Settings.mechWaveTriggerFraction * 100f).ToString("F0")));
             Settings.mechWaveTriggerFraction = Mathf.Round(listing.Slider(Settings.mechWaveTriggerFraction, 0.2f, 0.7f) * 20f) / 20f;
             listing.Label("IRC_MechWaveDelay".Translate((Settings.mechWaveMinimumDelayTicks / 60f).ToString("F0")));
@@ -89,6 +95,9 @@ namespace ImmersiveRaidCompression
         public float minimumMechClusterPoints = 2500f;
         public int humanSoftPawnCap = 45;
         public int mechanoidSoftPawnCap = 24;
+        public int mechWaveSplitCountThreshold = 36;
+        public float mechWaveMinimumPoints = 1500f;
+        public float mechWaveBudgetFraction = 0.15f;
         public float mechWaveTriggerFraction = 0.45f;
         public int mechWaveMinimumDelayTicks = 600;
         public int manhunterSoftPawnCap = 30;
@@ -107,6 +116,9 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref minimumMechClusterPoints, "minimumMechClusterPoints", 2500f);
             Scribe_Values.Look(ref humanSoftPawnCap, "humanSoftPawnCap", 45);
             Scribe_Values.Look(ref mechanoidSoftPawnCap, "mechanoidSoftPawnCap", 24);
+            Scribe_Values.Look(ref mechWaveSplitCountThreshold, "mechWaveSplitCountThreshold", 36);
+            Scribe_Values.Look(ref mechWaveMinimumPoints, "mechWaveMinimumPoints", 1500f);
+            Scribe_Values.Look(ref mechWaveBudgetFraction, "mechWaveBudgetFraction", 0.15f);
             Scribe_Values.Look(ref mechWaveTriggerFraction, "mechWaveTriggerFraction", 0.45f);
             Scribe_Values.Look(ref mechWaveMinimumDelayTicks, "mechWaveMinimumDelayTicks", 600);
             Scribe_Values.Look(ref manhunterSoftPawnCap, "manhunterSoftPawnCap", 30);

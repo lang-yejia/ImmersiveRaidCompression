@@ -99,6 +99,7 @@ namespace ImmersiveRaidCompression
             IReadOnlyList<PawnGenOptionWithXenotype> original,
             IReadOnlyList<PawnGenOptionWithXenotype> compressed,
             ICompressionPolicy policy,
+            ISet<PawnKindDef> permittedAddedBosses,
             out string reason)
         {
             reason = null;
@@ -132,7 +133,19 @@ namespace ImmersiveRaidCompression
                 .Select(option => ProtectedIdentity(option))
                 .OrderBy(value => value)
                 .ToList();
-            if (!originalProtected.SequenceEqual(finalProtected))
+            List<string> permittedAdditionalBosses = compressed
+                .Where(option => option.Option.kind.isBoss
+                    && permittedAddedBosses != null
+                    && permittedAddedBosses.Contains(option.Option.kind))
+                .Select(ProtectedIdentity)
+                .ToList();
+            bool protectedUnitsValid = originalProtected.SequenceEqual(finalProtected)
+                || (permittedAdditionalBosses.Count == 1
+                    && !original.Any(option => option.Option.kind.isBoss)
+                    && finalProtected.Count == originalProtected.Count + 1
+                    && originalProtected.SequenceEqual(
+                        finalProtected.Where(identity => identity != permittedAdditionalBosses[0])));
+            if (!protectedUnitsValid)
             {
                 reason = "protected-units-changed";
                 return false;

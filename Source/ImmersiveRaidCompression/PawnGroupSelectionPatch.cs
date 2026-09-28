@@ -70,6 +70,8 @@ namespace ImmersiveRaidCompression
             __result = result.Options;
             string originalComposition = CompressionTelemetry.DescribeComposition(original);
             string finalComposition = CompressionTelemetry.DescribeComposition(result.Options);
+            bool bossPromoted = result.Options.Count(option => option.Option.kind.isBoss)
+                > original.Count(option => option.Option.kind.isBoss);
             CompressionTelemetry.Record(
                 plan.Policy.ThreatType,
                 groupParms.faction.Name,
@@ -82,7 +84,9 @@ namespace ImmersiveRaidCompression
                 result.Options.Count(option => option.Option.kind.isBoss),
                 originalComposition,
                 finalComposition,
-                "IRC_IdentityRolesPreserved".Translate(),
+                (bossPromoted
+                    ? "IRC_IdentityRolesPreservedBossEligible"
+                    : "IRC_IdentityRolesPreserved").Translate(),
                 null,
                 null,
                 mechClassification?.Summary);

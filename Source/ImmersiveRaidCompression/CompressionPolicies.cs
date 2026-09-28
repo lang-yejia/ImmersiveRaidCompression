@@ -120,7 +120,7 @@ namespace ImmersiveRaidCompression
 
         public bool IsCandidateAllowed(PawnGenOptionWithXenotype option)
         {
-            return !IsProtected(option);
+            return !IsForbiddenReplacementKind(option.Option.kind);
         }
 
         public string RoleFor(PawnGenOptionWithXenotype option)
@@ -130,7 +130,12 @@ namespace ImmersiveRaidCompression
 
         public bool IsProtectedKind(PawnKindDef kind)
         {
-            return kind.isBoss || kind.isGoodBreacher || kind.canBeSapper || IsNamed(kind, "Termite");
+            return kind.isBoss || IsForbiddenReplacementKind(kind);
+        }
+
+        public bool IsForbiddenReplacementKind(PawnKindDef kind)
+        {
+            return kind.isGoodBreacher || kind.canBeSapper || IsNamed(kind, "Termite");
         }
 
         public string RoleForKind(PawnKindDef kind)

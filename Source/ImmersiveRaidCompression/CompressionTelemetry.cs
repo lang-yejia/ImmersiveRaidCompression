@@ -111,8 +111,11 @@ namespace ImmersiveRaidCompression
 
         public static void AttachWavePlan(
             string telemetryId,
+            int waveCount,
             int firstWaveCount,
+            float firstWavePoints,
             int deferredCount,
+            float minimumWavePoints,
             string arrivalMode,
             IntVec3 spawnCenter)
         {
@@ -123,8 +126,11 @@ namespace ImmersiveRaidCompression
             }
             snapshot.WavePlanId = telemetryId;
             snapshot.WaveSummary = "IRC_WavePlanSummary".Translate(
+                waveCount,
                 firstWaveCount,
+                firstWavePoints.ToString("F0"),
                 deferredCount,
+                minimumWavePoints.ToString("F0"),
                 arrivalMode,
                 spawnCenter);
         }
@@ -133,7 +139,9 @@ namespace ImmersiveRaidCompression
             string telemetryId,
             int releasedWaveCount,
             int batchCount,
+            float batchPoints,
             int remainingCount,
+            int remainingWaveCount,
             string arrivalMode,
             IntVec3 spawnCenter)
         {
@@ -145,7 +153,9 @@ namespace ImmersiveRaidCompression
             snapshot.WaveSummary = "IRC_WaveReleasedSummary".Translate(
                 releasedWaveCount,
                 batchCount,
+                batchPoints.ToString("F0"),
                 remainingCount,
+                remainingWaveCount,
                 arrivalMode,
                 spawnCenter);
         }
