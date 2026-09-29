@@ -67,11 +67,13 @@
   <IRC_HumanTreatment_SiegeVanillaPromotion>围城安全模式的同职责原版高阶替换</IRC_HumanTreatment_SiegeVanillaPromotion>
   <IRC_HumanTreatment_SapperEscortPromotion>保留工兵的护卫压缩</IRC_HumanTreatment_SapperEscortPromotion>
   <IRC_HumanTreatment_BreachEscortPromotion>保留破墙专家的护卫压缩</IRC_HumanTreatment_BreachEscortPromotion>
+  <IRC_HumanTreatment_DropAssaultPromotion>保持空投密度的原版晋升</IRC_HumanTreatment_DropAssaultPromotion>
   <IRC_HumanTreatment_ProtectedUntilDedicatedHandler>专用处理器完成前完整保持原版</IRC_HumanTreatment_ProtectedUntilDedicatedHandler>
   <IRC_IdentityRolesPreserved>所有原有职责及受保护单位均已保留，主要职责比例通过检查。</IRC_IdentityRolesPreserved>
   <IRC_IdentityRolesPreservedBossEligible>所有原有职责及受保护单位均已保留；新增的一个头目来自当前原版编队生成器自身的加权候选池。</IRC_IdentityRolesPreservedBossEligible>
   <IRC_IdentitySiegePreserved>只压缩普通战斗人员的 PawnKind 选择；原版围城策略、袭击 Lord、建造流程、迫击炮蓝图、围城物资、受保护专家及转入强攻流程均不修改。</IRC_IdentitySiegePreserved>
   <IRC_IdentityPathingSpecialistsPreserved>原有工兵、破墙专家、首领和一次性重武器携带者逐个保持不变；只晋升普通护卫，至少保留原护卫数量的 75%，原版开路 AI 与袭击 Lord 继续控制行动。</IRC_IdentityPathingSpecialistsPreserved>
+  <IRC_IdentityDropArrivalPreserved>继续使用已经解析的原版中心/分散空投 Worker 与落点逻辑；受保护单位逐个保持不变，并至少保留原人数的 80%，维持空投落地时的即时兵力密度。</IRC_IdentityDropArrivalPreserved>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>

@@ -76,6 +76,7 @@ namespace ImmersiveRaidCompression
         SiegeVanillaPromotion,
         SapperEscortPromotion,
         BreachEscortPromotion,
+        DropAssaultPromotion,
         ProtectedUntilDedicatedHandler
     }
 
@@ -163,11 +164,19 @@ namespace ImmersiveRaidCompression
             }
             if (arrivalMode == PawnsArrivalModeDefOf.CenterDrop)
             {
-                return Protected(HumanRaidArchetype.CenterDrop, strategyName, arrivalName);
+                return new HumanRaidClassification(
+                    HumanRaidArchetype.CenterDrop,
+                    HumanRaidTreatment.DropAssaultPromotion,
+                    strategyName,
+                    arrivalName);
             }
             if (arrivalMode == PawnsArrivalModeDefOf.RandomDrop)
             {
-                return Protected(HumanRaidArchetype.RandomDrop, strategyName, arrivalName);
+                return new HumanRaidClassification(
+                    HumanRaidArchetype.RandomDrop,
+                    HumanRaidTreatment.DropAssaultPromotion,
+                    strategyName,
+                    arrivalName);
             }
             if (arrivalMode != PawnsArrivalModeDefOf.EdgeWalkIn
                 && arrivalMode != PawnsArrivalModeDefOf.EdgeDrop)

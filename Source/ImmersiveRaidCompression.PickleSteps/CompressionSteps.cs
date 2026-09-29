@@ -16,6 +16,7 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool mechBossPromotionRulesAreBounded;
         private bool humanRaidClassifierMatchedExpectedFamilies;
         private bool humanSpecialistEscortFloorWorks;
+        private bool humanDropDensityFloorWorks;
         private Faction humanSiegeFaction;
         private bool phasedMechWaveSplitAndReleased;
         private bool phasedMechWaveUsedEdgeAnchor;
@@ -133,6 +134,46 @@ namespace ImmersiveRaidCompression.PickleTests
             parms.faction = faction;
             parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed(strategyDefName);
             parms.raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn;
+            parms.forced = true;
+            parms.pawnGroupMakerSeed = context.ScenarioSeed;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced human " + description + " raid declined to fire.");
+        }
+
+        [When("a human center-drop raid fires with {int} points")]
+        public void HumanCenterDropRaidFires(PickleContext context, int points)
+        {
+            FireHumanDropRaid(context, points, PawnsArrivalModeDefOf.CenterDrop, "center-drop");
+        }
+
+        [When("a human random-drop raid fires with {int} points")]
+        public void HumanRandomDropRaidFires(PickleContext context, int points)
+        {
+            FireHumanDropRaid(context, points, PawnsArrivalModeDefOf.RandomDrop, "random-drop");
+        }
+
+        private static void FireHumanDropRaid(
+            PickleContext context,
+            int points,
+            PawnsArrivalModeDef arrivalMode,
+            string description)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            FactionDef pirateWaster = DefDatabase<FactionDef>.GetNamed("PirateWaster");
+            Faction faction = Find.FactionManager.FirstFactionOfDef(pirateWaster);
+            context.Assert(
+                faction != null && faction.HostileTo(Faction.OfPlayer),
+                "No hostile waster pirate faction is present in this world.");
+
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("RaidEnemy");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.faction = faction;
+            parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            parms.raidArrivalMode = arrivalMode;
             parms.forced = true;
             parms.pawnGroupMakerSeed = context.ScenarioSeed;
 
@@ -321,20 +362,27 @@ namespace ImmersiveRaidCompression.PickleTests
                 && breachRaid.Treatment == HumanRaidTreatment.BreachEscortPromotion
                 && invalidGroupedBreach.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler
                 && centerDrop.Archetype == HumanRaidArchetype.CenterDrop
+                && centerDrop.Treatment == HumanRaidTreatment.DropAssaultPromotion
                 && randomDrop.Archetype == HumanRaidArchetype.RandomDrop
+                && randomDrop.Treatment == HumanRaidTreatment.DropAssaultPromotion
                 && multiDirection.Archetype == HumanRaidArchetype.MultiDirection
-                && new[] { invalidDropSiege, invalidGroupedBreach, centerDrop, randomDrop, multiDirection }
+                && new[] { invalidDropSiege, invalidGroupedBreach, multiDirection }
                     .All(result => result.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler);
             humanSpecialistEscortFloorWorks =
-                HumanSpecialistCompressionRules.MinimumTargetCount(100, 10, 20) == 78
-                && HumanSpecialistCompressionRules.MinimumTargetCount(20, 5, 18) == 18;
+                HumanCompressionCountRules.MinimumSpecialistTargetCount(100, 10, 20) == 78
+                && HumanCompressionCountRules.MinimumSpecialistTargetCount(20, 5, 18) == 18;
+            humanDropDensityFloorWorks =
+                HumanCompressionCountRules.MinimumDropTargetCount(100, 20) == 80
+                && HumanCompressionCountRules.MinimumDropTargetCount(20, 18) == 18;
         }
 
-        [Then("the human raid classifier compresses only ordinary direct assaults")]
+        [Then("the human raid classifier assigns dedicated treatments and protects invalid combinations")]
         public void HumanClassifierProtectsSpecialStrategies(PickleContext context)
         {
             context.Assert(
-                humanRaidClassifierMatchedExpectedFamilies && humanSpecialistEscortFloorWorks,
+                humanRaidClassifierMatchedExpectedFamilies
+                    && humanSpecialistEscortFloorWorks
+                    && humanDropDensityFloorWorks,
                 "The human raid classifier did not separate ordinary assaults from siege, sapper, breach, drop, and multi-direction raids.");
         }
 
@@ -392,6 +440,36 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 snapshot.IdentitySummary == "IRC_IdentityPathingSpecialistsPreserved".Translate(),
                 "The specialist and escort preservation proof was not recorded.");
+        }
+
+        [Then("the compressed center-drop raid preserves its vanilla arrival and density floor")]
+        public void CenterDropRaidPreservesArrival(PickleContext context)
+        {
+            AssertDropRaidPreserved(context, "IRC_HumanArchetype_CenterDrop");
+        }
+
+        [Then("the compressed random-drop raid preserves its vanilla arrival and density floor")]
+        public void RandomDropRaidPreservesArrival(PickleContext context)
+        {
+            AssertDropRaidPreserved(context, "IRC_HumanArchetype_RandomDrop");
+        }
+
+        private static void AssertDropRaidPreserved(
+            PickleContext context,
+            string archetypeTranslationKey)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful human drop-raid compression was recorded.");
+            context.Assert(
+                snapshot.ThreatType == "human raid"
+                && snapshot.ClassificationSummary.Contains(archetypeTranslationKey.Translate()),
+                "The compression record did not contain the expected drop-raid classification.");
+            context.Assert(
+                snapshot.IdentitySummary == "IRC_IdentityDropArrivalPreserved".Translate(),
+                "The vanilla drop-arrival and density preservation proof was not recorded.");
+            context.Assert(
+                snapshot.FinalCount >= System.Math.Ceiling(snapshot.OriginalCount * 0.80f),
+                "The compressed drop raid fell below its eighty-percent pawn-density floor.");
         }
 
         [When("I stage a homogeneous mechanoid edge wave at {int} points")]

@@ -43,7 +43,7 @@ Feature: Immersive Raid Compression runtime smoke
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset
     When I classify representative vanilla human raid strategies
-    Then the human raid classifier compresses only ordinary direct assaults
+    Then the human raid classifier assigns dedicated treatments and protects invalid combinations
     And no errors were logged
 
   Scenario: a high-point human siege keeps its vanilla siege workflow
@@ -77,6 +77,26 @@ Feature: Immersive Raid Compression runtime smoke
     And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
     And the compressed breach raid preserves every path-opening unit and its escort floor
     And compression history contains detailed before and after compositions
+    And no errors were logged
+
+  Scenario: a high-point human center-drop raid keeps its vanilla arrival pressure
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a human center-drop raid fires with 30000 points
+    And I wait 60 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the compressed center-drop raid preserves its vanilla arrival and density floor
+    And no errors were logged
+
+  Scenario: a high-point human random-drop raid keeps its vanilla arrival pressure
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a human random-drop raid fires with 30000 points
+    And I wait 60 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the compressed random-drop raid preserves its vanilla arrival and density floor
     And no errors were logged
 
   Scenario: a homogeneous mechanoid swarm arrives in controlled edge waves
