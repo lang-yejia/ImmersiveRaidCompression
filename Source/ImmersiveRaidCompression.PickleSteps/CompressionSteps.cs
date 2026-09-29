@@ -29,6 +29,11 @@ namespace ImmersiveRaidCompression.PickleTests
         private List<Pawn> phasedMechFirstWave;
         private int phasedMechDeferredBeforeRelease;
         private Lord phasedMechOriginalLord;
+        private bool phasedPiratePlanValid;
+        private List<Pawn> phasedPirateFirstWave;
+        private int phasedPirateDeferredBeforeRelease;
+        private Lord phasedPirateOriginalLord;
+        private Faction phasedPirateFaction;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -38,6 +43,13 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.enableHumanRaids = true;
             CompressionMod.Settings.minimumRaidPoints = 1000f;
             CompressionMod.Settings.humanSoftPawnCap = 8;
+            CompressionMod.Settings.enablePhasedPirateWaves = true;
+            CompressionMod.Settings.enableTacticalPirateDrops = true;
+            CompressionMod.Settings.pirateWaveSplitCountThreshold = 12;
+            CompressionMod.Settings.pirateWaveMinimumPoints = 1000f;
+            CompressionMod.Settings.pirateWaveBudgetFraction = 0.15f;
+            CompressionMod.Settings.pirateWaveTriggerFraction = 0.65f;
+            CompressionMod.Settings.pirateWaveMinimumDelayTicks = 180;
             CompressionMod.Settings.enableManhunterPacks = true;
             CompressionMod.Settings.minimumManhunterPoints = 1000f;
             CompressionMod.Settings.manhunterSoftPawnCap = 30;
@@ -77,6 +89,81 @@ namespace ImmersiveRaidCompression.PickleTests
 
             bool fired = incident.Worker.TryExecute(parms);
             context.Assert(fired, "The forced ordinary human edge raid declined to fire.");
+        }
+
+        [When("a phased pirate edge assault fires with {int} points")]
+        public void PhasedPirateEdgeAssaultFires(PickleContext context, int points)
+        {
+            OrdinaryHumanEdgeRaidFires(context, points);
+            Map map = Find.CurrentMap;
+            phasedPirateFaction = Find.FactionManager.FirstFactionOfDef(
+                DefDatabase<FactionDef>.GetNamed("PirateWaster"));
+            phasedPirateFirstWave = map.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction == phasedPirateFaction && !pawn.Dead)
+                .ToList();
+            MechRaidReinforcementComponent component = Current.Game
+                .GetComponent<MechRaidReinforcementComponent>();
+            phasedPirateDeferredBeforeRelease = component.PendingPawnCount;
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            phasedPiratePlanValid = snapshot != null
+                && component.PendingPlanCount == 1
+                && component.TotalPlannedWaveCount >= 2
+                && component.TotalPlannedWaveCount <= 3
+                && component.AllPlannedWavesMeetMinimum
+                && component.AllPiratePlansRoleBalanced
+                && phasedPirateFirstWave.Count > 0
+                && phasedPirateDeferredBeforeRelease > 0
+                && phasedPirateFirstWave.Count + phasedPirateDeferredBeforeRelease == snapshot.FinalCount
+                && !string.IsNullOrWhiteSpace(snapshot.WaveSummary);
+        }
+
+        [Then("the pirate assault becomes two or three role-balanced qualified waves")]
+        public void PirateAssaultUsesQualifiedWaves(PickleContext context)
+        {
+            context.Assert(
+                phasedPiratePlanValid,
+                "The pirate assault did not produce two or three role-balanced, point-qualified waves with complete telemetry.");
+        }
+
+        [When("I defeat the active first pirate wave")]
+        public void DefeatActiveFirstPirateWave(PickleContext context)
+        {
+            context.Assert(phasedPirateFirstWave != null, "No staged pirate first wave was recorded.");
+            phasedPirateOriginalLord = phasedPirateFirstWave
+                .Select(LordUtility.GetLord)
+                .FirstOrDefault(candidate => candidate != null);
+            context.Assert(phasedPirateOriginalLord != null, "The original pirate wave has no raid Lord.");
+            List<Pawn> active = phasedPirateFirstWave
+                .Where(pawn => pawn.Spawned && !pawn.Dead)
+                .ToList();
+            context.Assert(active.Count >= 2, "The active pirate wave is too small to leave a reinforcement anchor.");
+            foreach (Pawn pawn in active.Skip(1))
+            {
+                pawn.Kill(null);
+            }
+        }
+
+        [Then("the next pirate wave releases into the original raid Lord")]
+        public void NextPirateWaveUsesOriginalLord(PickleContext context)
+        {
+            MechRaidReinforcementComponent component = Current.Game
+                .GetComponent<MechRaidReinforcementComponent>();
+            context.Assert(
+                component.PendingPawnCount < phasedPirateDeferredBeforeRelease,
+                "The next pirate wave did not release after active combat power fell below the threshold.");
+            List<Pawn> active = Find.CurrentMap.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction == phasedPirateFaction && !pawn.Dead)
+                .ToList();
+            context.Assert(active.Count > 1, "No live pirate reinforcements were found.");
+            context.Assert(
+                active.All(pawn => LordUtility.GetLord(pawn) == phasedPirateOriginalLord),
+                "A pirate reinforcement did not join the original raid Lord.");
+        }
+
+        [Then("the pirate reinforcement uses safe vanilla drop pods near survivors")]
+        public void PirateWaveUsesSafeTacticalDropPods(PickleContext context)
+        {
+            AssertLastTacticalDropSafe(context, 30);
         }
 
         [When("a human siege raid fires with {int} points")]
@@ -803,6 +890,11 @@ namespace ImmersiveRaidCompression.PickleTests
         [Then("the next mechanoid wave uses safe vanilla drop pods near survivors")]
         public void NextWaveUsesSafeTacticalDropPods(PickleContext context)
         {
+            AssertLastTacticalDropSafe(context, 18);
+        }
+
+        private static void AssertLastTacticalDropSafe(PickleContext context, int maximumAnchorDistance)
+        {
             Map map = Find.CurrentMap;
             MechRaidReinforcementComponent component = Current.Game.GetComponent<MechRaidReinforcementComponent>();
             IReadOnlyList<IntVec3> cells = component.LastTacticalDropCells;
@@ -825,7 +917,7 @@ namespace ImmersiveRaidCompression.PickleTests
                 "A tactical reinforcement pod landed in an unsafe player or base exclusion zone.");
             context.Assert(
                 cells.All(cell => cell.DistanceToSquared(anchor) >= 6 * 6
-                    && cell.DistanceToSquared(anchor) <= 18 * 18),
+                    && cell.DistanceToSquared(anchor) <= maximumAnchorDistance * maximumAnchorDistance),
                 "A tactical reinforcement pod did not land near a surviving original attacker.");
         }
 

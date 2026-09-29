@@ -2,6 +2,10 @@
 <LanguageData>
   <IRC_EnableHumanRaids>Compress oversized human raids</IRC_EnableHumanRaids>
   <IRC_EnableHumanRaidsDesc>Conservatively replaces pairs of low-tier raiders with a stronger vanilla pawn kind from the same faction group. No combat stat buffs are added.</IRC_EnableHumanRaidsDesc>
+  <IRC_EnablePhasedPirateWaves>Phase oversized pirate assaults</IRC_EnablePhasedPirateWaves>
+  <IRC_EnablePhasedPirateWavesDesc>Only ordinary pirate edge assaults can become two or three role-balanced, point-qualified waves. Siege, sapper, breach, center-drop, and multi-front raids remain excluded.</IRC_EnablePhasedPirateWavesDesc>
+  <IRC_EnableTacticalPirateDrops>Drop pirate reinforcements near surviving attackers</IRC_EnableTacticalPirateDrops>
+  <IRC_EnableTacticalPirateDropsDesc>Uses validated vanilla drop-pod safety rules and falls back to the original edge arrival when a complete safe landing cluster is unavailable.</IRC_EnableTacticalPirateDropsDesc>
   <IRC_EnableMechanoidRaids>Compress oversized mechanoid raids</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>Promotes same-role models from the current vanilla group. Breachers and existing bosses are preserved; a mixed force may very rarely gain at most one boss from its own weighted vanilla pool.</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnablePhasedMechanoidWaves>Phase homogeneous mechanoid swarms</IRC_EnablePhasedMechanoidWaves>
@@ -14,6 +18,11 @@
   <IRC_EnableMechClustersDesc>Only compresses same-role mechanoids in the cluster sketch. Buildings, turrets, shields, problem causers, activation, and positions remain vanilla.</IRC_EnableMechClustersDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
+  <IRC_PirateWaveSplitCount>Pirate split threshold: more than {0} pawns</IRC_PirateWaveSplitCount>
+  <IRC_PirateWaveMinimumPoints>Absolute minimum points per pirate wave: {0}</IRC_PirateWaveMinimumPoints>
+  <IRC_PirateWaveBudgetFraction>Dynamic minimum per pirate wave: {0}% of the adjusted raid budget</IRC_PirateWaveBudgetFraction>
+  <IRC_PirateWaveTrigger>Next pirate wave at remaining active power: {0}%</IRC_PirateWaveTrigger>
+  <IRC_PirateWaveDelay>Minimum delay between pirate waves: {0} seconds</IRC_PirateWaveDelay>
   <IRC_MechanoidSoftPawnCap>Mechanoid soft pawn cap: {0}</IRC_MechanoidSoftPawnCap>
   <IRC_MechWaveSplitCount>Minimum mechanoid count before phasing: {0}</IRC_MechWaveSplitCount>
   <IRC_MechWaveMinimumPoints>Absolute minimum points per mech wave: {0}</IRC_MechWaveMinimumPoints>

@@ -25,6 +25,10 @@ namespace ImmersiveRaidCompression
             {
                 MechRaidWaveController.TryStageLaterWaves(pawns, parms);
             }
+            if (!PirateRaidWaveController.ReleasingDeferredWave)
+            {
+                PirateRaidWaveController.TryStageLaterWaves(pawns, parms);
+            }
         }
     }
 
@@ -105,6 +109,7 @@ namespace ImmersiveRaidCompression
             component.AddPlan(plan);
             CompressionTelemetry.AttachWavePlan(
                 plan.TelemetryId,
+                "mechanoid raid",
                 partition.Waves.Count,
                 firstWave.Count,
                 partition.WavePoints[0],
@@ -259,7 +264,8 @@ namespace ImmersiveRaidCompression
             Map map,
             IEnumerable<Pawn> originalRaidPawns,
             out IntVec3 anchor,
-            out List<IntVec3> dropCells)
+            out List<IntVec3> dropCells,
+            int maximumAllyDistance = MaximumAllyDistance)
         {
             anchor = IntVec3.Invalid;
             dropCells = new List<IntVec3>();
@@ -285,7 +291,7 @@ namespace ImmersiveRaidCompression
             {
                 List<IntVec3> safeCells = GenRadial.RadialCellsAround(
                         survivor.Position,
-                        MaximumAllyDistance,
+                        maximumAllyDistance,
                         true)
                     .Where(cell => cell.DistanceToSquared(survivor.Position)
                         >= MinimumAllyDistance * MinimumAllyDistance)
@@ -360,6 +366,9 @@ namespace ImmersiveRaidCompression
         public bool AllPlannedWavesMeetMinimum => plans.All(plan => plan.AllPlannedWavesMeetMinimum);
         public float MinimumPlannedWavePoints => plans.Count == 0 ? 0f : plans.Min(plan => plan.MinimumWavePoints);
         public bool LastReleaseUsedTacticalDrop => plans.Any(plan => plan.LastReleaseUsedTacticalDrop);
+        public bool AllPiratePlansRoleBalanced => plans
+            .Where(plan => plan.ThreatType == "human raid")
+            .All(plan => plan.RoleBalanced);
         public IReadOnlyList<IntVec3> LastTacticalDropCells => plans
             .SelectMany(plan => plan.LastTacticalDropCells)
             .ToList();
@@ -443,6 +452,9 @@ namespace ImmersiveRaidCompression
         private int nextReleaseTick;
         private int releasedWaveCount;
         private string telemetryId;
+        private string threatType = "mechanoid raid";
+        private int minimumDelayTicks = 180;
+        private bool roleBalanced = true;
 
         public int DeferredCount => deferredPawns?.Count ?? 0;
         public int RemainingWaveCount => remainingWaveSizes?.Count ?? 0;
@@ -453,6 +465,8 @@ namespace ImmersiveRaidCompression
         public IReadOnlyList<IntVec3> LastTacticalDropCells => lastTacticalDropCells;
         public IntVec3 LastTacticalDropAnchor => lastTacticalDropAnchor;
         public string TelemetryId => telemetryId;
+        public string ThreatType => threatType;
+        public bool RoleBalanced => roleBalanced;
         public int NextReleaseTick => nextReleaseTick;
         public float ActiveCombatPower => releasedPawns
             .Where(pawn => pawn != null
@@ -478,7 +492,9 @@ namespace ImmersiveRaidCompression
             float minimumWavePoints,
             bool tacticalDropReinforcements,
             float triggerFraction,
-            int nextReleaseTick)
+            int nextReleaseTick,
+            string threatType = "mechanoid raid",
+            int minimumDelayTicks = 180)
         {
             this.map = map;
             this.faction = faction;
@@ -491,10 +507,24 @@ namespace ImmersiveRaidCompression
             plannedWavePoints = new[] { MechWavePlanner.CombatPower(firstWave) }
                 .Concat(laterWaves.Select(MechWavePlanner.CombatPower))
                 .ToList();
+            if (threatType == "human raid")
+            {
+                List<List<Pawn>> allWaves = new[] { firstWave }.Concat(laterWaves).ToList();
+                List<string> commonRoles = allWaves
+                    .SelectMany(wave => wave)
+                    .GroupBy(PirateWavePlanner.RoleFor)
+                    .Where(group => group.Count() >= allWaves.Count)
+                    .Select(group => group.Key)
+                    .ToList();
+                roleBalanced = allWaves.All(wave => commonRoles.All(role =>
+                    wave.Any(pawn => PirateWavePlanner.RoleFor(pawn) == role)));
+            }
             this.minimumWavePoints = minimumWavePoints;
             this.tacticalDropReinforcements = tacticalDropReinforcements;
             this.triggerFraction = triggerFraction;
             this.nextReleaseTick = nextReleaseTick;
+            this.threatType = threatType;
+            this.minimumDelayTicks = minimumDelayTicks;
             initialWavePower = MechWavePlanner.CombatPower(firstWave);
             telemetryId = Guid.NewGuid().ToString("N");
         }
@@ -563,17 +593,25 @@ namespace ImmersiveRaidCompression
                         map,
                         releasedPawns,
                         out releaseAnchor,
-                        out tacticalDropCells);
+                        out tacticalDropCells,
+                        threatType == "human raid" ? 30 : 18);
                 }
                 if (!usedTacticalDrop)
                 {
-                    MechRaidWaveController.ArriveDeferredWave(batch, parms);
+                    if (threatType == "human raid")
+                    {
+                        PirateRaidWaveController.ArriveDeferredWave(batch, parms);
+                    }
+                    else
+                    {
+                        MechRaidWaveController.ArriveDeferredWave(batch, parms);
+                    }
                 }
                 AttachBatchToOriginalLord(batch);
             }
             catch (Exception exception)
             {
-                Log.Error("[Immersive Raid Compression] Could not release a deferred mech wave: " + exception);
+                Log.Error("[Immersive Raid Compression] Could not release a deferred " + threatType + " wave: " + exception);
                 foreach (Pawn pawn in batch.Where(pawn => !pawn.SpawnedOrAnyParentSpawned))
                 {
                     Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.KeepForever);
@@ -589,7 +627,7 @@ namespace ImmersiveRaidCompression
             remainingWaveSizes.RemoveAt(0);
             releasedWaveCount++;
             nextReleaseTick = Find.TickManager.TicksGame
-                + (CompressionMod.Settings?.mechWaveMinimumDelayTicks ?? 180);
+                + Math.Max(1, minimumDelayTicks);
             CompressionTelemetry.RecordWaveRelease(
                 telemetryId,
                 releasedWaveCount,
@@ -604,7 +642,7 @@ namespace ImmersiveRaidCompression
             if (CompressionMod.Settings?.verboseLogging == true)
             {
                 Log.Message(
-                    "[Immersive Raid Compression] released mech reinforcement wave "
+                    "[Immersive Raid Compression] released " + threatType + " reinforcement wave "
                     + releasedWaveCount + ": " + batch.Count + " pawns, "
                     + deferredPawns.Count + " deferred, arrival "
                     + (usedTacticalDrop ? "tactical vanilla drop pods" : arrivalMode.defName)
@@ -669,6 +707,9 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref nextReleaseTick, "nextReleaseTick");
             Scribe_Values.Look(ref releasedWaveCount, "releasedWaveCount");
             Scribe_Values.Look(ref telemetryId, "telemetryId");
+            Scribe_Values.Look(ref threatType, "threatType", "mechanoid raid");
+            Scribe_Values.Look(ref minimumDelayTicks, "minimumDelayTicks", 180);
+            Scribe_Values.Look(ref roleBalanced, "roleBalanced", true);
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 releasedPawns ??= new List<Pawn>();

@@ -128,9 +128,8 @@ namespace ImmersiveRaidCompression
             string strategyName = strategy?.defName ?? "-";
             string arrivalName = arrivalMode?.defName ?? "-";
 
-            // A normal assault may contain an individually breach-capable pawn. The existing
-            // human compression policy protects that pawn; it does not turn the whole raid
-            // into a breach raid. Tactical family is defined by the raid strategy itself.
+            // Potential sapper capability on a PawnKind does not turn a normal assault into
+            // a specialist raid. The resolved strategy selects the stricter specialist policy.
             if (Contains(strategyName, "Breach"))
             {
                 return SpecialistRaid(

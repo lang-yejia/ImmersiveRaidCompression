@@ -20,7 +20,7 @@ namespace ImmersiveRaidCompression
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1060f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1400f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
@@ -28,6 +28,14 @@ namespace ImmersiveRaidCompression
                 "IRC_EnableHumanRaids".Translate(),
                 ref Settings.enableHumanRaids,
                 "IRC_EnableHumanRaidsDesc".Translate());
+            listing.CheckboxLabeled(
+                "IRC_EnablePhasedPirateWaves".Translate(),
+                ref Settings.enablePhasedPirateWaves,
+                "IRC_EnablePhasedPirateWavesDesc".Translate());
+            listing.CheckboxLabeled(
+                "IRC_EnableTacticalPirateDrops".Translate(),
+                ref Settings.enableTacticalPirateDrops,
+                "IRC_EnableTacticalPirateDropsDesc".Translate());
             listing.CheckboxLabeled(
                 "IRC_EnableMechanoidRaids".Translate(),
                 ref Settings.enableMechanoidRaids,
@@ -53,6 +61,16 @@ namespace ImmersiveRaidCompression
             Settings.minimumRaidPoints = Mathf.Round(listing.Slider(Settings.minimumRaidPoints, 500f, 10000f) / 100f) * 100f;
             listing.Label("IRC_HumanSoftPawnCap".Translate(Settings.humanSoftPawnCap));
             Settings.humanSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.humanSoftPawnCap, 10, 100));
+            listing.Label("IRC_PirateWaveSplitCount".Translate(Settings.pirateWaveSplitCountThreshold));
+            Settings.pirateWaveSplitCountThreshold = Mathf.RoundToInt(listing.Slider(Settings.pirateWaveSplitCountThreshold, 12, 120));
+            listing.Label("IRC_PirateWaveMinimumPoints".Translate(Settings.pirateWaveMinimumPoints.ToString("F0")));
+            Settings.pirateWaveMinimumPoints = Mathf.Round(listing.Slider(Settings.pirateWaveMinimumPoints, 500f, 5000f) / 100f) * 100f;
+            listing.Label("IRC_PirateWaveBudgetFraction".Translate((Settings.pirateWaveBudgetFraction * 100f).ToString("F0")));
+            Settings.pirateWaveBudgetFraction = Mathf.Round(listing.Slider(Settings.pirateWaveBudgetFraction, 0.10f, 0.40f) * 20f) / 20f;
+            listing.Label("IRC_PirateWaveTrigger".Translate((Settings.pirateWaveTriggerFraction * 100f).ToString("F0")));
+            Settings.pirateWaveTriggerFraction = Mathf.Round(listing.Slider(Settings.pirateWaveTriggerFraction, 0.2f, 0.85f) * 20f) / 20f;
+            listing.Label("IRC_PirateWaveDelay".Translate((Settings.pirateWaveMinimumDelayTicks / 60f).ToString("F0")));
+            Settings.pirateWaveMinimumDelayTicks = Mathf.RoundToInt(listing.Slider(Settings.pirateWaveMinimumDelayTicks, 60, 1800) / 60f) * 60;
             listing.Label("IRC_MechanoidSoftPawnCap".Translate(Settings.mechanoidSoftPawnCap));
             Settings.mechanoidSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.mechanoidSoftPawnCap, 8, 60));
             listing.Label("IRC_MechWaveSplitCount".Translate(Settings.mechWaveSplitCountThreshold));
@@ -89,8 +107,10 @@ namespace ImmersiveRaidCompression
 
     public sealed class CompressionSettings : ModSettings
     {
-        private int settingsVersion = 1;
+        private int settingsVersion = 2;
         public bool enableHumanRaids = true;
+        public bool enablePhasedPirateWaves = true;
+        public bool enableTacticalPirateDrops = true;
         public bool enableMechanoidRaids = true;
         public bool enablePhasedMechanoidWaves = true;
         public bool enableTacticalMechDrops = true;
@@ -100,6 +120,11 @@ namespace ImmersiveRaidCompression
         public float minimumManhunterPoints = 1000f;
         public float minimumMechClusterPoints = 2500f;
         public int humanSoftPawnCap = 45;
+        public int pirateWaveSplitCountThreshold = 36;
+        public float pirateWaveMinimumPoints = 1500f;
+        public float pirateWaveBudgetFraction = 0.15f;
+        public float pirateWaveTriggerFraction = 0.65f;
+        public int pirateWaveMinimumDelayTicks = 180;
         public int mechanoidSoftPawnCap = 24;
         public int mechWaveSplitCountThreshold = 36;
         public float mechWaveMinimumPoints = 1500f;
@@ -114,6 +139,8 @@ namespace ImmersiveRaidCompression
         {
             Scribe_Values.Look(ref settingsVersion, "settingsVersion", 0);
             Scribe_Values.Look(ref enableHumanRaids, "enableHumanRaids", true);
+            Scribe_Values.Look(ref enablePhasedPirateWaves, "enablePhasedPirateWaves", true);
+            Scribe_Values.Look(ref enableTacticalPirateDrops, "enableTacticalPirateDrops", true);
             Scribe_Values.Look(ref enableMechanoidRaids, "enableMechanoidRaids", true);
             Scribe_Values.Look(ref enablePhasedMechanoidWaves, "enablePhasedMechanoidWaves", true);
             Scribe_Values.Look(ref enableTacticalMechDrops, "enableTacticalMechDrops", true);
@@ -123,6 +150,11 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref minimumManhunterPoints, "minimumManhunterPoints", 1000f);
             Scribe_Values.Look(ref minimumMechClusterPoints, "minimumMechClusterPoints", 2500f);
             Scribe_Values.Look(ref humanSoftPawnCap, "humanSoftPawnCap", 45);
+            Scribe_Values.Look(ref pirateWaveSplitCountThreshold, "pirateWaveSplitCountThreshold", 36);
+            Scribe_Values.Look(ref pirateWaveMinimumPoints, "pirateWaveMinimumPoints", 1500f);
+            Scribe_Values.Look(ref pirateWaveBudgetFraction, "pirateWaveBudgetFraction", 0.15f);
+            Scribe_Values.Look(ref pirateWaveTriggerFraction, "pirateWaveTriggerFraction", 0.65f);
+            Scribe_Values.Look(ref pirateWaveMinimumDelayTicks, "pirateWaveMinimumDelayTicks", 180);
             Scribe_Values.Look(ref mechanoidSoftPawnCap, "mechanoidSoftPawnCap", 24);
             Scribe_Values.Look(ref mechWaveSplitCountThreshold, "mechWaveSplitCountThreshold", 36);
             Scribe_Values.Look(ref mechWaveMinimumPoints, "mechWaveMinimumPoints", 1500f);
@@ -138,6 +170,17 @@ namespace ImmersiveRaidCompression
                 mechWaveTriggerFraction = 0.65f;
                 mechWaveMinimumDelayTicks = 180;
                 settingsVersion = 1;
+            }
+            if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 2)
+            {
+                enablePhasedPirateWaves = true;
+                enableTacticalPirateDrops = true;
+                pirateWaveSplitCountThreshold = 36;
+                pirateWaveMinimumPoints = 1500f;
+                pirateWaveBudgetFraction = 0.15f;
+                pirateWaveTriggerFraction = 0.65f;
+                pirateWaveMinimumDelayTicks = 180;
+                settingsVersion = 2;
             }
         }
     }

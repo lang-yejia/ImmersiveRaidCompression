@@ -2,13 +2,14 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.14 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
+Version 0.15 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
 
 ## Implementation status
 
 Implemented and runtime-covered:
 
 - Ordinary human `ImmediateAttack` raids arriving by `EdgeWalkIn` or `EdgeDrop`: classified, then passed to the existing same-role vanilla PawnKind promotion system. Tactical roles, xenotype groups, protected equipment carriers, and 95–105% actual kind cost are preserved.
+- Oversized ordinary pirate edge assaults: after vanilla-roster promotion, the remaining force may become two or three role-balanced waves. Every wave must clear a dynamic point floor; weak tails are merged. Later waves use validated vanilla drop pods within 30 cells of a surviving attacker or fall back as one complete batch to the original edge arrival, then join the original raid Lord and inherit its live state.
 - Ordinary tribal raids: potential sapper-capable warrior kinds remain eligible outside actual sapper and breach strategies. Every promotion comes only from the active tribal faction's vanilla group maker, so technology level, xenotype, combat role, leaders, true breachers, and single-use weapons remain intact. Specialist raids continue to use the stricter protection policy.
 - Human `Siege` raids arriving by `EdgeWalkIn`: only ordinary combat PawnKind selections are compressed. The resolved siege strategy, vanilla `LordJob_Siege`, builder assignment, mortar blueprints, construction supplies, protected specialists, preparation phase, and transition to direct assault remain controlled by vanilla code rather than being replaced or reimplemented.
 - Human sapper and breach raids arriving by `EdgeWalkIn`: every original sapper, breacher, leader, and single-use heavy-weapon carrier is retained exactly. Only ordinary escorts are promoted, at least 75% of the original escort count remains, and the vanilla raid Lord and path-opening AI remain in control.
@@ -27,9 +28,10 @@ Classified and deliberately protected, but not compressed yet:
 
 Raid-family classification follows the resolved vanilla raid strategy and arrival mode. An ordinary direct assault does not become a sapper or breach raid merely because a PawnKind is marked as potentially sapper-capable. That kind may be promoted normally in an ordinary assault; the stricter policy is selected only for a resolved sapper or breach strategy, while true `isGoodBreacher` kinds remain protected everywhere.
 
+Pirate phasing is intentionally narrower than pirate compression. It applies only to vanilla pirate factions whose resolved strategy is an ordinary direct assault and whose arrival is `EdgeWalkIn` or `EdgeDrop`. Siege, sapper, breach, center-drop, random-drop, grouped, distributed, and unknown special arrivals never enter the pirate wave controller. Common melee, ranged, heavy, explosive, area-denial, shield, and xenotype role groups are spread across qualified waves instead of being concentrated in one batch.
+
 Not implemented yet:
 
-- Dedicated pirate continuous reinforcement; human raids do not currently reuse the mechanoid wave controller.
 - Dedicated mechanoid breach/boss-led handling and special mechanoid arrival modes beyond the currently safe promotion/protection rules.
 - Insect infestations and Anomaly-specific threats, which require event-specific lifecycle and objective rules.
 - Quest- or script-driven raids whose authored composition or timing must remain intact.
@@ -87,6 +89,7 @@ The RimWorld 1.6 runtime suite currently covers four threat families and opens t
 - Human grouped edge raid: 232 to 209 pawns, retaining 26,984 of 26,986 vanilla PawnKind points (100.0%) while keeping multiple edge approaches.
 - Human all-around distributed raid: 258 to 233 pawns, retaining 29,987 of 29,992 vanilla PawnKind points (100.0%) while keeping at least three represented map edges.
 - Tribal direct raid: 355 to 299 pawns, retaining 29,976 of 29,984 vanilla PawnKind points (100.0%), using only higher-tier PawnKinds from the active vanilla tribal group maker.
+- Pirate direct assault: 258 to 210 pawns by vanilla promotion, then three role-balanced waves of 70. The first wave carried 9,085 points against a 4,500-point dynamic minimum; the next 70-pawn wave arrived in vanilla drop pods near a surviving attacker and joined the original Lord.
 - Mechanoid raid: mixed forces retain same-role promotion and can add at most one low-probability boss from the current vanilla weighted pool; a deterministic scyther-only force of 66 is rebalanced into three point-qualified waves of 22. The next wave uses native drop pods near a survivor, passes player/base exclusion checks, and joins the original Lord after active combat power falls below the threshold.
 - Manhunter pack: 100 cougars to 75 wargs, retaining 12,000 of 12,000 actual vanilla PawnKind points (100%) with compatible behavior, speed, size, armor, and abilities.
 - Mech cluster A/B sketch: 21 to 18 defenders, retaining 3,615 of 3,670 points (98.5%) while all 74 buildings and the activation state remain field-for-field identical in the deterministic signature.

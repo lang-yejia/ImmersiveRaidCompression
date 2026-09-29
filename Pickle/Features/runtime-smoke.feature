@@ -31,6 +31,18 @@ Feature: Immersive Raid Compression runtime smoke
     Then the compression history window is open
     And no errors were logged
 
+  Scenario: an oversized pirate assault maintains pressure with role-balanced reinforcements
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a phased pirate edge assault fires with 30000 points
+    Then the pirate assault becomes two or three role-balanced qualified waves
+    And I wait 60 ticks
+    When I defeat the active first pirate wave
+    And I wait 660 ticks
+    Then the next pirate wave releases into the original raid Lord
+    And the pirate reinforcement uses safe vanilla drop pods near survivors
+    And no errors were logged
+
   Scenario: vanilla mechanoid force families receive distinct safe treatments
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

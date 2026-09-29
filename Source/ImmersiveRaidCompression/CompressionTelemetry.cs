@@ -111,6 +111,7 @@ namespace ImmersiveRaidCompression
 
         public static void AttachWavePlan(
             string telemetryId,
+            string threatType,
             int waveCount,
             int firstWaveCount,
             float firstWavePoints,
@@ -119,7 +120,8 @@ namespace ImmersiveRaidCompression
             string arrivalMode,
             IntVec3 spawnCenter)
         {
-            CompressionSnapshot snapshot = history.FirstOrDefault(record => record.ThreatType == "mechanoid raid");
+            CompressionSnapshot snapshot = history.FirstOrDefault(record => record.ThreatType == threatType
+                && string.IsNullOrEmpty(record.WavePlanId));
             if (snapshot == null)
             {
                 return;

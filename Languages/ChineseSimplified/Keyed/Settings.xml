@@ -2,6 +2,10 @@
 <LanguageData>
   <IRC_EnableHumanRaids>压缩规模过大的人类袭击</IRC_EnableHumanRaids>
   <IRC_EnableHumanRaidsDesc>保守地把两个低阶袭击者替换成同一派系编队中的一个高阶原版兵种，不添加战斗属性 Buff。</IRC_EnableHumanRaidsDesc>
+  <IRC_EnablePhasedPirateWaves>将过大的海盗正面袭击分批入场</IRC_EnablePhasedPirateWaves>
+  <IRC_EnablePhasedPirateWavesDesc>只有普通海盗边缘强攻可分为两批或三批职责均衡且达到点数下限的部队；围城、工兵、破墙、中心空投和多线袭击均排除。</IRC_EnablePhasedPirateWavesDesc>
+  <IRC_EnableTacticalPirateDrops>将海盗增援空投到存活进攻者附近</IRC_EnableTacticalPirateDrops>
+  <IRC_EnableTacticalPirateDropsDesc>使用经过验证的原版空投舱安全规则；无法找到完整安全落点组时回退到原始边缘入场。</IRC_EnableTacticalPirateDropsDesc>
   <IRC_EnableMechanoidRaids>压缩规模过大的机械族袭击</IRC_EnableMechanoidRaids>
   <IRC_EnableMechanoidRaidsDesc>只在当前原版编队中进行同职责晋升。破墙单位和已有头目保持不变；混编极低概率从自身原版加权候选池晋升最多一个头目。</IRC_EnableMechanoidRaidsDesc>
   <IRC_EnablePhasedMechanoidWaves>将同质机械海分批入场</IRC_EnablePhasedMechanoidWaves>
@@ -14,6 +18,11 @@
   <IRC_EnableMechClustersDesc>只压缩集群草图中的同职责机械体；建筑、炮塔、护盾、问题建筑、唤醒方式和落点完全保持原版。</IRC_EnableMechClustersDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
+  <IRC_PirateWaveSplitCount>海盗分批门槛：超过 {0} 人</IRC_PirateWaveSplitCount>
+  <IRC_PirateWaveMinimumPoints>每批海盗的固定最低点数：{0}</IRC_PirateWaveMinimumPoints>
+  <IRC_PirateWaveBudgetFraction>每批海盗动态最低点数：调整后袭击预算的 {0}%</IRC_PirateWaveBudgetFraction>
+  <IRC_PirateWaveTrigger>下一批海盗触发时的剩余有效战力：{0}%</IRC_PirateWaveTrigger>
+  <IRC_PirateWaveDelay>海盗增援最短间隔：{0} 秒</IRC_PirateWaveDelay>
   <IRC_MechanoidSoftPawnCap>机械体软上限：{0}</IRC_MechanoidSoftPawnCap>
   <IRC_MechWaveSplitCount>开始分批的机械体数量门槛：{0}</IRC_MechWaveSplitCount>
   <IRC_MechWaveMinimumPoints>每批机械体的固定最低点数：{0}</IRC_MechWaveMinimumPoints>
