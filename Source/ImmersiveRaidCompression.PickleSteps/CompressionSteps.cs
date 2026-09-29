@@ -14,6 +14,7 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool mechClusterPositionsCameFromVanillaSketch;
         private bool mechRaidClassifierMatchedExpectedFamilies;
         private bool mechBossPromotionRulesAreBounded;
+        private bool humanRaidClassifierMatchedExpectedFamilies;
         private bool phasedMechWaveSplitAndReleased;
         private bool phasedMechWaveUsedEdgeAnchor;
         private bool phasedMechWavesMeetDynamicMinimum;
@@ -28,6 +29,9 @@ namespace ImmersiveRaidCompression.PickleTests
         {
             CompressionTelemetry.Reset();
             CompressionMod.Settings.verboseLogging = true;
+            CompressionMod.Settings.enableHumanRaids = true;
+            CompressionMod.Settings.minimumRaidPoints = 1000f;
+            CompressionMod.Settings.humanSoftPawnCap = 8;
             CompressionMod.Settings.enableManhunterPacks = true;
             CompressionMod.Settings.minimumManhunterPoints = 1000f;
             CompressionMod.Settings.manhunterSoftPawnCap = 30;
@@ -42,6 +46,31 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.mechWaveBudgetFraction = 0.15f;
             CompressionMod.Settings.mechWaveTriggerFraction = 0.65f;
             CompressionMod.Settings.mechWaveMinimumDelayTicks = 180;
+        }
+
+        [When("an ordinary human edge raid fires with {int} points")]
+        public void OrdinaryHumanEdgeRaidFires(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            FactionDef pirateWaster = DefDatabase<FactionDef>.GetNamed("PirateWaster");
+            Faction faction = Find.FactionManager.FirstFactionOfDef(pirateWaster);
+            context.Assert(
+                faction != null && faction.HostileTo(Faction.OfPlayer),
+                "No hostile waster pirate faction is present in this world.");
+
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("RaidEnemy");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.faction = faction;
+            parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            parms.raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn;
+            parms.forced = true;
+            parms.pawnGroupMakerSeed = context.ScenarioSeed;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced ordinary human edge raid declined to fire.");
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -156,6 +185,85 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 !string.IsNullOrWhiteSpace(snapshot.ClassificationSummary),
                 "The mechanoid raid record did not contain a classification summary.");
+        }
+
+        [When("I classify representative vanilla human raid strategies")]
+        public void ClassifyRepresentativeHumanRaids(PickleContext context)
+        {
+            PawnKindDef pirate = DefDatabase<PawnKindDef>.GetNamed("Pirate");
+            PawnKindDef breacher = DefDatabase<PawnKindDef>.GetNamed("Tribal_Breacher");
+            RaidStrategyDef immediate = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            RaidStrategyDef siege = DefDatabase<RaidStrategyDef>.GetNamed("Siege");
+            RaidStrategyDef sapper = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackSappers");
+            RaidStrategyDef breach = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackBreaching");
+            PawnsArrivalModeDef edgeGroups = DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeWalkInGroups");
+
+            HumanRaidClassification direct = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification directWithProtectedBreacher = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 49).Concat(new[] { breacher }),
+                immediate,
+                PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification siegeRaid = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                siege,
+                PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification sapperRaid = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                sapper,
+                PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification breachRaid = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 49).Concat(new[] { breacher }),
+                breach,
+                PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification centerDrop = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                PawnsArrivalModeDefOf.CenterDrop);
+            HumanRaidClassification randomDrop = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                PawnsArrivalModeDefOf.RandomDrop);
+            HumanRaidClassification multiDirection = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                edgeGroups);
+
+            humanRaidClassifierMatchedExpectedFamilies =
+                direct.Archetype == HumanRaidArchetype.DirectAssault
+                && direct.Treatment == HumanRaidTreatment.VanillaPromotion
+                && directWithProtectedBreacher.Archetype == HumanRaidArchetype.DirectAssault
+                && directWithProtectedBreacher.Treatment == HumanRaidTreatment.VanillaPromotion
+                && siegeRaid.Archetype == HumanRaidArchetype.Siege
+                && siegeRaid.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler
+                && sapperRaid.Archetype == HumanRaidArchetype.Sapper
+                && breachRaid.Archetype == HumanRaidArchetype.Breach
+                && centerDrop.Archetype == HumanRaidArchetype.CenterDrop
+                && randomDrop.Archetype == HumanRaidArchetype.RandomDrop
+                && multiDirection.Archetype == HumanRaidArchetype.MultiDirection
+                && new[] { sapperRaid, breachRaid, centerDrop, randomDrop, multiDirection }
+                    .All(result => result.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler);
+        }
+
+        [Then("the human raid classifier compresses only ordinary direct assaults")]
+        public void HumanClassifierProtectsSpecialStrategies(PickleContext context)
+        {
+            context.Assert(
+                humanRaidClassifierMatchedExpectedFamilies,
+                "The human raid classifier did not separate ordinary assaults from siege, sapper, breach, drop, and multi-direction raids.");
+        }
+
+        [Then("the last human raid history record contains a treatment classification")]
+        public void HumanHistoryContainsClassification(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful human raid compression was recorded.");
+            context.Assert(
+                snapshot.ThreatType == "human raid"
+                && !string.IsNullOrWhiteSpace(snapshot.ClassificationSummary),
+                "The human raid record did not contain a classification summary.");
         }
 
         [When("I stage a homogeneous mechanoid edge wave at {int} points")]

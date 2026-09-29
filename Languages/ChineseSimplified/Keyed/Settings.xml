@@ -38,7 +38,7 @@
   <IRC_FinalComposition>最终构成：{0}</IRC_FinalComposition>
   <IRC_HistoryReason>原因：{0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>战术身份：{0}</IRC_HistoryIdentity>
-  <IRC_HistoryClassification>机械袭击分类：{0}</IRC_HistoryClassification>
+  <IRC_HistoryClassification>威胁分类：{0}</IRC_HistoryClassification>
   <IRC_HistoryWave>分批增援：{0}</IRC_HistoryWave>
   <IRC_WavePlanSummary>共 {0} 个合格批次；首批 {1} 个/{2} 点；待增援 {3} 个；每批最低 {4} 点；原始/回退入场方式 {5}；保留的地图边缘锚点 {6}</IRC_WavePlanSummary>
   <IRC_WaveReleasedSummary>第 {0} 波释放 {1} 个/{2} 点；剩余 {3} 个、共 {4} 个合格批次；实际入场方式 {5}；锚点 {6}；已加入原袭击 Lord 并继承其当前状态</IRC_WaveReleasedSummary>
@@ -54,11 +54,23 @@
   <IRC_MechTreatment_VanillaPromotion>同职责原版高阶替换</IRC_MechTreatment_VanillaPromotion>
   <IRC_MechTreatment_PhasedReinforcementCandidate>可进入保持入场方式的分批增援阶段</IRC_MechTreatment_PhasedReinforcementCandidate>
   <IRC_MechTreatment_ProtectedStrategy>受保护战术，不进行通用分批</IRC_MechTreatment_ProtectedStrategy>
+  <IRC_HumanClassificationSummary>{0}；处理方式：{1}；策略：{2}；入场方式：{3}</IRC_HumanClassificationSummary>
+  <IRC_HumanArchetype_DirectAssault>普通正面进攻</IRC_HumanArchetype_DirectAssault>
+  <IRC_HumanArchetype_Siege>围攻</IRC_HumanArchetype_Siege>
+  <IRC_HumanArchetype_Sapper>工兵袭击</IRC_HumanArchetype_Sapper>
+  <IRC_HumanArchetype_Breach>破墙袭击</IRC_HumanArchetype_Breach>
+  <IRC_HumanArchetype_CenterDrop>中心空投袭击</IRC_HumanArchetype_CenterDrop>
+  <IRC_HumanArchetype_RandomDrop>分散空投袭击</IRC_HumanArchetype_RandomDrop>
+  <IRC_HumanArchetype_MultiDirection>多方向袭击</IRC_HumanArchetype_MultiDirection>
+  <IRC_HumanArchetype_SpecialArrival>尚未支持的特殊入场</IRC_HumanArchetype_SpecialArrival>
+  <IRC_HumanTreatment_VanillaPromotion>同职责原版高阶替换</IRC_HumanTreatment_VanillaPromotion>
+  <IRC_HumanTreatment_ProtectedUntilDedicatedHandler>专用处理器完成前完整保持原版</IRC_HumanTreatment_ProtectedUntilDedicatedHandler>
   <IRC_IdentityRolesPreserved>所有原有职责及受保护单位均已保留，主要职责比例通过检查。</IRC_IdentityRolesPreserved>
   <IRC_IdentityRolesPreservedBossEligible>所有原有职责及受保护单位均已保留；新增的一个头目来自当前原版编队生成器自身的加权候选池。</IRC_IdentityRolesPreservedBossEligible>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>
+  <IRC_ReasonProtectedHumanStrategy>该人类袭击使用尚未完成专用压缩规则的特殊策略或入场方式，因此完整保持原版。</IRC_ReasonProtectedHumanStrategy>
   <IRC_ReasonNoAnimal>原版及官方 DLC 中没有价值更高且符合当前条件的食人动物物种。</IRC_ReasonNoAnimal>
   <IRC_ThreatHumanRaid>人类袭击</IRC_ThreatHumanRaid>
   <IRC_ThreatMechanoidRaid>机械族袭击</IRC_ThreatMechanoidRaid>

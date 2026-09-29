@@ -2,7 +2,34 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.8 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, sappers, breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected.
+Version 0.9 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, sappers, breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected.
+
+## Implementation status
+
+Implemented and runtime-covered:
+
+- Ordinary human `ImmediateAttack` raids arriving by `EdgeWalkIn` or `EdgeDrop`: classified, then passed to the existing same-role vanilla PawnKind promotion system. Tactical roles, xenotype groups, protected equipment carriers, and 95–105% actual kind cost are preserved.
+- Mixed mechanoid raids: same-role vanilla promotion, with an optional single boss drawn only from that group's legal weighted vanilla pool and bounded by its vanilla-relative chance.
+- Homogeneous pure-role mechanoid edge raids: two or three dynamically point-qualified waves, weak-tail merging, safe vanilla tactical drop-pod reinforcement, original-Lord membership, and live wait/attack-state inheritance.
+- Mech clusters: defender-only compression; structures, positions, materials, rotation, quality, hit points, and activation state remain untouched.
+- Manhunter packs: replacement only by a stronger vanilla species with compatible predator/herd/pack behavior, mobility, body size, armor, and special abilities.
+- Audit history: successful compression and protected/skipped decisions include threat classification and before/after evidence.
+
+Classified and deliberately protected, but not compressed yet:
+
+- Human siege, sapper, and breach strategies.
+- Human center-drop, random-drop, grouped/multidirectional, distributed, and unknown special arrival modes.
+- Human factions whose generated roster has no legal same-role vanilla promotion. These remain wholly vanilla instead of receiving a buff or tactically invalid substitution.
+
+Raid-family classification follows the resolved vanilla raid strategy and arrival mode. An ordinary direct assault does not become a breach raid merely because its roster contains one breach-capable pawn; that individual pawn remains protected by the existing human compression policy while the rest of the ordinary force may still be compressed.
+
+Not implemented yet:
+
+- Dedicated siege compression that preserves mortar crews, construction material, preparation time, and assault transition.
+- Dedicated sapper/breach compression that preserves the number and support ratio of path-opening specialists.
+- A pirate-specific continuous reinforcement system; human raids do not currently reuse the mechanoid wave controller.
+- Dedicated tribal compression where no higher-value same-role vanilla PawnKind exists.
+- Insect infestations and Anomaly-specific threats, which require event-specific lifecycle and objective rules.
 
 Before a large ordinary mechanoid raid is changed, a classifier identifies scyther swarms, militor swarms, centipede formations, other role-dominant swarms, mixed forces, breach forces, and boss-led forces. A 100% single-role force may use phased reinforcement only when the vanilla arrival mode is `EdgeWalkIn` or `EdgeDrop` and its generated pawn count exceeds the configurable split threshold. The planner creates no more than three waves, then requires every wave to reach the higher of the fixed point floor and a configurable percentage of the already-adjusted vanilla raid budget. If three waves cannot all qualify, it merges and rebalances them into two; if two qualified batches are impossible, the raid stays whole.
 
@@ -48,7 +75,7 @@ dotnet build .\Source\ImmersiveRaidCompression.PickleSteps\ImmersiveRaidCompress
 
 The RimWorld 1.6 runtime suite currently covers four threat families and opens the history page inside the live game:
 
-- Human raid: 54 to 45 pawns, retaining 6,442 of 6,481 vanilla PawnKind points (99.4%) while preserving all tactical roles.
+- Human direct edge raid: 258 to 210 pawns, retaining 29,059 of 29,992 vanilla PawnKind points (96.9%) while preserving all tactical roles and individually protected units.
 - Mechanoid raid: mixed forces retain same-role promotion and can add at most one low-probability boss from the current vanilla weighted pool; a deterministic scyther-only force of 66 is rebalanced into three point-qualified waves of 22. The next wave uses native drop pods near a survivor, passes player/base exclusion checks, and joins the original Lord after active combat power falls below the threshold.
 - Manhunter pack: 100 cougars to 75 wargs, retaining 12,000 of 12,000 actual vanilla PawnKind points (100%) with compatible behavior, speed, size, armor, and abilities.
 - Mech cluster A/B sketch: 21 to 18 defenders, retaining 3,615 of 3,670 points (98.5%) while all 74 buildings and the activation state remain field-for-field identical in the deterministic signature.

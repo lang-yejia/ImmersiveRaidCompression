@@ -38,7 +38,7 @@
   <IRC_FinalComposition>Final: {0}</IRC_FinalComposition>
   <IRC_HistoryReason>Reason: {0}</IRC_HistoryReason>
   <IRC_HistoryIdentity>Tactical identity: {0}</IRC_HistoryIdentity>
-  <IRC_HistoryClassification>Mech raid classification: {0}</IRC_HistoryClassification>
+  <IRC_HistoryClassification>Threat classification: {0}</IRC_HistoryClassification>
   <IRC_HistoryWave>Phased reinforcement: {0}</IRC_HistoryWave>
   <IRC_WavePlanSummary>{0} qualified waves; first wave {1} pawns/{2} points; deferred {3}; minimum {4} points per wave; original/fallback arrival {5}; reserved edge anchor {6}</IRC_WavePlanSummary>
   <IRC_WaveReleasedSummary>wave {0} released {1} pawns/{2} points; {3} pawns in {4} qualified waves remain; actual arrival {5}; anchor {6}; joined the original raid Lord and inherited its current state</IRC_WaveReleasedSummary>
@@ -54,11 +54,23 @@
   <IRC_MechTreatment_VanillaPromotion>same-role vanilla promotion</IRC_MechTreatment_VanillaPromotion>
   <IRC_MechTreatment_PhasedReinforcementCandidate>candidate for arrival-aware phased reinforcement</IRC_MechTreatment_PhasedReinforcementCandidate>
   <IRC_MechTreatment_ProtectedStrategy>protected strategy; no generic phasing</IRC_MechTreatment_ProtectedStrategy>
+  <IRC_HumanClassificationSummary>{0}; treatment: {1}; strategy: {2}; arrival: {3}</IRC_HumanClassificationSummary>
+  <IRC_HumanArchetype_DirectAssault>ordinary direct assault</IRC_HumanArchetype_DirectAssault>
+  <IRC_HumanArchetype_Siege>siege</IRC_HumanArchetype_Siege>
+  <IRC_HumanArchetype_Sapper>sapper assault</IRC_HumanArchetype_Sapper>
+  <IRC_HumanArchetype_Breach>breach assault</IRC_HumanArchetype_Breach>
+  <IRC_HumanArchetype_CenterDrop>center-drop assault</IRC_HumanArchetype_CenterDrop>
+  <IRC_HumanArchetype_RandomDrop>scattered drop assault</IRC_HumanArchetype_RandomDrop>
+  <IRC_HumanArchetype_MultiDirection>multi-direction assault</IRC_HumanArchetype_MultiDirection>
+  <IRC_HumanArchetype_SpecialArrival>unsupported special arrival</IRC_HumanArchetype_SpecialArrival>
+  <IRC_HumanTreatment_VanillaPromotion>same-role vanilla promotion</IRC_HumanTreatment_VanillaPromotion>
+  <IRC_HumanTreatment_ProtectedUntilDedicatedHandler>kept fully vanilla until a dedicated handler exists</IRC_HumanTreatment_ProtectedUntilDedicatedHandler>
   <IRC_IdentityRolesPreserved>All original roles and protected units remain, and major role ratios passed validation.</IRC_IdentityRolesPreserved>
   <IRC_IdentityRolesPreservedBossEligible>All original roles and protected units remain; one boss was promoted from this vanilla group maker's own weighted candidate pool.</IRC_IdentityRolesPreservedBossEligible>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>
+  <IRC_ReasonProtectedHumanStrategy>This human raid uses a special strategy or arrival mode whose dedicated compression rules are not implemented yet.</IRC_ReasonProtectedHumanStrategy>
   <IRC_ReasonNoAnimal>No higher-value manhunter species from Core or an official DLC is legal under the current conditions.</IRC_ReasonNoAnimal>
   <IRC_ThreatHumanRaid>Human raid</IRC_ThreatHumanRaid>
   <IRC_ThreatMechanoidRaid>Mechanoid raid</IRC_ThreatMechanoidRaid>

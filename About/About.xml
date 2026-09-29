@@ -3,7 +3,7 @@
   <name>Immersive Raid Compression</name>
   <author>lyj</author>
   <packageId>langyejia.immersiveraidcompression</packageId>
-  <modVersion>0.8.0</modVersion>
+  <modVersion>0.9.0</modVersion>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
@@ -18,7 +18,7 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Reduces oversized late-game human raids, mechanoid raids, manhunter packs, and mech cluster defenders without hidden stat buffs. Homogeneous pure-role mechanoid swarms using vanilla edge-walk or edge-drop arrival can enter in two or three controlled waves as active combat power falls. Later waves use vanilla drop pods near surviving original attackers, but only on validated cells outside player-pawn, player-building, home-area, roof, and fog exclusion zones; when no complete safe cluster exists they fall back to the original edge arrival. Phasing starts only above a configurable count threshold; every wave must clear a dynamic point floor and weak tails are merged. Reinforcements join the original raid Lord and share its live wait/attack state. Mixed forces use same-role vanilla promotion and may very rarely promote at most one boss only from the current vanilla group maker's weighted pool. Special arrivals and strategies stay protected. Deferred mechs and exact qualified wave plans are saved. The audit page shows classification, per-wave points, arrival and state-inheritance proof.
+  <description>Reduces oversized late-game human raids, mechanoid raids, manhunter packs, and mech cluster defenders without hidden stat buffs. Ordinary human edge assaults use same-role vanilla promotion. Siege, sapper, breach, center-drop, random-drop, grouped, distributed, and unknown special human raids are classified and left unchanged until each receives a dedicated rule, preserving their original tactical challenge. Homogeneous pure-role mechanoid swarms using vanilla edge-walk or edge-drop arrival can enter in two or three controlled waves as active combat power falls. Later waves use vanilla drop pods near surviving original attackers, but only on validated cells outside player-pawn, player-building, home-area, roof, and fog exclusion zones; when no complete safe cluster exists they fall back to the original edge arrival. Phasing starts only above a configurable count threshold; every wave must clear a dynamic point floor and weak tails are merged. Reinforcements join the original raid Lord and share its live wait/attack state. Mixed forces use same-role vanilla promotion and may very rarely promote at most one boss only from the current vanilla group maker's weighted pool. Deferred mechs and exact qualified wave plans are saved. The audit page shows classification, per-wave points, arrival and state-inheritance proof.
 
-通过原版高阶单位替换或安全分批减少后期单位数，不添加隐藏属性 Buff。单一职责机械海超过数量门槛后只分为两批或三批，每批必须达到动态点数下限。后续批次使用原版空投舱降落在原袭击存活单位附近，但落点必须避开玩家小人、玩家建筑、Home 区、屋顶和战争迷雾；整批找不到安全落点便回退到原版边缘入场。增援加入原袭击 Lord，继承其当前等待/进攻状态。混编只进行同职责原版晋升，并且仅从当前原版编队生成器自身的加权候选池极低概率晋升最多一个头目。特殊袭击策略继续受到保护。待增援单位与精确波次计划写入存档，记录页面显示每批点数、入场方式与状态继承证明。</description>
+通过原版高阶单位替换或安全分批减少后期单位数，不添加隐藏属性 Buff。普通人类边缘正面袭击使用同职责原版晋升；围城、工兵、破墙、中心空投、随机空投、分组/分散入场及未知特殊袭击会被分类并保持原版，等待各自的专用规则，以保留原有战术考验。单一职责机械海超过数量门槛后只分为两批或三批，每批必须达到动态点数下限。后续批次使用原版空投舱降落在原袭击存活单位附近，但落点必须避开玩家小人、玩家建筑、Home 区、屋顶和战争迷雾；整批找不到安全落点便回退到原版边缘入场。增援加入原袭击 Lord，继承其当前等待/进攻状态。混编只进行同职责原版晋升，并且仅从当前原版编队生成器自身的加权候选池极低概率晋升最多一个头目。待增援单位与精确波次计划写入存档，记录页面显示分类、每批点数、入场方式与状态继承证明。</description>
 </ModMetaData>

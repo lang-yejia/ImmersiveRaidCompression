@@ -21,15 +21,34 @@ namespace ImmersiveRaidCompression
                 return;
             }
 
-            CompressionPlan plan = CompressionEligibility.PlanFor(groupParms, original.Count);
+            CompressionPlan plan = CompressionEligibility.PlanFor(groupParms, original);
             if (plan == null)
             {
                 return;
             }
 
-            MechRaidClassification mechClassification = plan.Policy is MechanoidRaidCompressionPolicy
-                ? MechRaidClassifier.Analyze(groupParms, original)
-                : null;
+            if (!plan.ShouldCompress)
+            {
+                string protectedComposition = CompressionTelemetry.DescribeComposition(original);
+                CompressionTelemetry.RecordSkipped(
+                    plan.Policy.ThreatType,
+                    groupParms.faction.Name,
+                    original.Count,
+                    original.Sum(option => option.Cost),
+                    pointsTotal,
+                    protectedComposition,
+                    plan.ProtectedReasonKey.Translate(),
+                    plan.ClassificationSummary);
+                if (CompressionMod.Settings.verboseLogging)
+                {
+                    Verse.Log.Message(
+                        "[Immersive Raid Compression] " + groupParms.faction.Name
+                        + " (" + plan.Policy.ThreatType + "): kept vanilla because "
+                        + plan.ProtectedReasonKey.Translate() + " "
+                        + plan.ClassificationSummary);
+                }
+                return;
+            }
 
             CompressionResult result = VanillaPawnKindCompressor.TryCompress(
                 pointsTotal,
@@ -50,7 +69,7 @@ namespace ImmersiveRaidCompression
                     pointsTotal,
                     composition,
                     "IRC_ReasonNoPromotion".Translate(),
-                    mechClassification?.Summary);
+                    plan.ClassificationSummary);
                 if (CompressionMod.Settings.verboseLogging)
                 {
                     Verse.Log.Message(
@@ -89,7 +108,7 @@ namespace ImmersiveRaidCompression
                     : "IRC_IdentityRolesPreserved").Translate(),
                 null,
                 null,
-                mechClassification?.Summary);
+                plan.ClassificationSummary);
             Verse.Log.Message(
                 "[Immersive Raid Compression] " + groupParms.faction.Name
                 + " (" + plan.Policy.ThreatType + ")"
