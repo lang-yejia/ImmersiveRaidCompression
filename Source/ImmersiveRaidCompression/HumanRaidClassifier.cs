@@ -74,6 +74,8 @@ namespace ImmersiveRaidCompression
     {
         VanillaPromotion,
         SiegeVanillaPromotion,
+        SapperEscortPromotion,
+        BreachEscortPromotion,
         ProtectedUntilDedicatedHandler
     }
 
@@ -129,11 +131,21 @@ namespace ImmersiveRaidCompression
             // into a breach raid. Tactical family is defined by the raid strategy itself.
             if (Contains(strategyName, "Breach"))
             {
-                return Protected(HumanRaidArchetype.Breach, strategyName, arrivalName);
+                return SpecialistRaid(
+                    HumanRaidArchetype.Breach,
+                    HumanRaidTreatment.BreachEscortPromotion,
+                    arrivalMode,
+                    strategyName,
+                    arrivalName);
             }
             if (Contains(strategyName, "Sapper"))
             {
-                return Protected(HumanRaidArchetype.Sapper, strategyName, arrivalName);
+                return SpecialistRaid(
+                    HumanRaidArchetype.Sapper,
+                    HumanRaidTreatment.SapperEscortPromotion,
+                    arrivalMode,
+                    strategyName,
+                    arrivalName);
             }
             if (Contains(strategyName, "Siege"))
             {
@@ -178,6 +190,22 @@ namespace ImmersiveRaidCompression
             return new HumanRaidClassification(
                 archetype,
                 HumanRaidTreatment.ProtectedUntilDedicatedHandler,
+                strategyName,
+                arrivalName);
+        }
+
+        private static HumanRaidClassification SpecialistRaid(
+            HumanRaidArchetype archetype,
+            HumanRaidTreatment treatment,
+            PawnsArrivalModeDef arrivalMode,
+            string strategyName,
+            string arrivalName)
+        {
+            return new HumanRaidClassification(
+                archetype,
+                arrivalMode == PawnsArrivalModeDefOf.EdgeWalkIn
+                    ? treatment
+                    : HumanRaidTreatment.ProtectedUntilDedicatedHandler,
                 strategyName,
                 arrivalName);
         }

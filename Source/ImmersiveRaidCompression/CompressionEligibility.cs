@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 
 namespace ImmersiveRaidCompression
@@ -34,17 +36,28 @@ namespace ImmersiveRaidCompression
                     parms,
                     original,
                     arrivalMode);
+                bool specialistRaid = classification.Treatment == HumanRaidTreatment.SapperEscortPromotion
+                    || classification.Treatment == HumanRaidTreatment.BreachEscortPromotion;
+                int targetCount = specialistRaid
+                    ? HumanSpecialistCompressionRules.MinimumTargetCount(
+                        original.Count,
+                        original.Count(HumanRaidCompressionPolicy.Instance.IsProtected),
+                        settings.humanSoftPawnCap)
+                    : settings.humanSoftPawnCap;
                 return new CompressionPlan(
-                    settings.humanSoftPawnCap,
+                    targetCount,
                     HumanRaidCompressionPolicy.Instance,
                     classification.Summary,
                     classification.Treatment == HumanRaidTreatment.VanillaPromotion
                         || classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
+                        || specialistRaid
                         ? null
                         : "IRC_ReasonProtectedHumanStrategy",
-                    classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
-                        ? "IRC_IdentitySiegePreserved"
-                        : null);
+                    specialistRaid
+                        ? "IRC_IdentityPathingSpecialistsPreserved"
+                        : classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
+                            ? "IRC_IdentitySiegePreserved"
+                            : null);
             }
 
             if (settings.enableMechanoidRaids
@@ -59,6 +72,19 @@ namespace ImmersiveRaidCompression
             }
 
             return null;
+        }
+    }
+
+    public static class HumanSpecialistCompressionRules
+    {
+        private const float MinimumEscortFraction = 0.75f;
+
+        public static int MinimumTargetCount(int originalCount, int protectedCount, int configuredCap)
+        {
+            int boundedProtected = Math.Max(0, Math.Min(originalCount, protectedCount));
+            int originalEscorts = Math.Max(0, originalCount - boundedProtected);
+            int minimumEscorts = (int)Math.Ceiling(originalEscorts * MinimumEscortFraction);
+            return Math.Max(configuredCap, boundedProtected + minimumEscorts);
         }
     }
 
