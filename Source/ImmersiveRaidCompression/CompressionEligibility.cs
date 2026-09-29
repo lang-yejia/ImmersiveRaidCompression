@@ -39,8 +39,12 @@ namespace ImmersiveRaidCompression
                     HumanRaidCompressionPolicy.Instance,
                     classification.Summary,
                     classification.Treatment == HumanRaidTreatment.VanillaPromotion
+                        || classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
                         ? null
-                        : "IRC_ReasonProtectedHumanStrategy");
+                        : "IRC_ReasonProtectedHumanStrategy",
+                    classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
+                        ? "IRC_IdentitySiegePreserved"
+                        : null);
             }
 
             if (settings.enableMechanoidRaids
@@ -64,18 +68,21 @@ namespace ImmersiveRaidCompression
         public ICompressionPolicy Policy { get; }
         public string ClassificationSummary { get; }
         public string ProtectedReasonKey { get; }
+        public string SuccessIdentityKey { get; }
         public bool ShouldCompress => string.IsNullOrEmpty(ProtectedReasonKey);
 
         public CompressionPlan(
             int targetCount,
             ICompressionPolicy policy,
             string classificationSummary = null,
-            string protectedReasonKey = null)
+            string protectedReasonKey = null,
+            string successIdentityKey = null)
         {
             TargetCount = targetCount;
             Policy = policy;
             ClassificationSummary = classificationSummary;
             ProtectedReasonKey = protectedReasonKey;
+            SuccessIdentityKey = successIdentityKey;
         }
     }
 }

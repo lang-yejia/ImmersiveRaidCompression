@@ -64,9 +64,11 @@
   <IRC_HumanArchetype_MultiDirection>多方向袭击</IRC_HumanArchetype_MultiDirection>
   <IRC_HumanArchetype_SpecialArrival>尚未支持的特殊入场</IRC_HumanArchetype_SpecialArrival>
   <IRC_HumanTreatment_VanillaPromotion>同职责原版高阶替换</IRC_HumanTreatment_VanillaPromotion>
+  <IRC_HumanTreatment_SiegeVanillaPromotion>围城安全模式的同职责原版高阶替换</IRC_HumanTreatment_SiegeVanillaPromotion>
   <IRC_HumanTreatment_ProtectedUntilDedicatedHandler>专用处理器完成前完整保持原版</IRC_HumanTreatment_ProtectedUntilDedicatedHandler>
   <IRC_IdentityRolesPreserved>所有原有职责及受保护单位均已保留，主要职责比例通过检查。</IRC_IdentityRolesPreserved>
   <IRC_IdentityRolesPreservedBossEligible>所有原有职责及受保护单位均已保留；新增的一个头目来自当前原版编队生成器自身的加权候选池。</IRC_IdentityRolesPreservedBossEligible>
+  <IRC_IdentitySiegePreserved>只压缩普通战斗人员的 PawnKind 选择；原版围城策略、袭击 Lord、建造流程、迫击炮蓝图、围城物资、受保护专家及转入强攻流程均不修改。</IRC_IdentitySiegePreserved>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>

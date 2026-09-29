@@ -73,6 +73,7 @@ namespace ImmersiveRaidCompression
     public enum HumanRaidTreatment
     {
         VanillaPromotion,
+        SiegeVanillaPromotion,
         ProtectedUntilDedicatedHandler
     }
 
@@ -136,7 +137,13 @@ namespace ImmersiveRaidCompression
             }
             if (Contains(strategyName, "Siege"))
             {
-                return Protected(HumanRaidArchetype.Siege, strategyName, arrivalName);
+                return new HumanRaidClassification(
+                    HumanRaidArchetype.Siege,
+                    arrivalMode == PawnsArrivalModeDefOf.EdgeWalkIn
+                        ? HumanRaidTreatment.SiegeVanillaPromotion
+                        : HumanRaidTreatment.ProtectedUntilDedicatedHandler,
+                    strategyName,
+                    arrivalName);
             }
             if (Contains(arrivalName, "Groups") || Contains(arrivalName, "Distributed"))
             {

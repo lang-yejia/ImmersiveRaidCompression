@@ -15,6 +15,7 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool mechRaidClassifierMatchedExpectedFamilies;
         private bool mechBossPromotionRulesAreBounded;
         private bool humanRaidClassifierMatchedExpectedFamilies;
+        private Faction humanSiegeFaction;
         private bool phasedMechWaveSplitAndReleased;
         private bool phasedMechWaveUsedEdgeAnchor;
         private bool phasedMechWavesMeetDynamicMinimum;
@@ -71,6 +72,31 @@ namespace ImmersiveRaidCompression.PickleTests
 
             bool fired = incident.Worker.TryExecute(parms);
             context.Assert(fired, "The forced ordinary human edge raid declined to fire.");
+        }
+
+        [When("a human siege raid fires with {int} points")]
+        public void HumanSiegeRaidFires(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            FactionDef pirateWaster = DefDatabase<FactionDef>.GetNamed("PirateWaster");
+            humanSiegeFaction = Find.FactionManager.FirstFactionOfDef(pirateWaster);
+            context.Assert(
+                humanSiegeFaction != null && humanSiegeFaction.HostileTo(Faction.OfPlayer),
+                "No hostile waster pirate faction is present in this world.");
+
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("RaidEnemy");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.faction = humanSiegeFaction;
+            parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed("Siege");
+            parms.raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn;
+            parms.forced = true;
+            parms.pawnGroupMakerSeed = context.ScenarioSeed;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced human siege raid declined to fire.");
         }
 
         [When("a mechanoid raid fires with {int} points")]
@@ -210,6 +236,10 @@ namespace ImmersiveRaidCompression.PickleTests
                 Enumerable.Repeat(pirate, 50),
                 siege,
                 PawnsArrivalModeDefOf.EdgeWalkIn);
+            HumanRaidClassification invalidDropSiege = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                siege,
+                PawnsArrivalModeDefOf.CenterDrop);
             HumanRaidClassification sapperRaid = HumanRaidClassifier.Analyze(
                 Enumerable.Repeat(pirate, 50),
                 sapper,
@@ -237,7 +267,9 @@ namespace ImmersiveRaidCompression.PickleTests
                 && directWithProtectedBreacher.Archetype == HumanRaidArchetype.DirectAssault
                 && directWithProtectedBreacher.Treatment == HumanRaidTreatment.VanillaPromotion
                 && siegeRaid.Archetype == HumanRaidArchetype.Siege
-                && siegeRaid.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler
+                && siegeRaid.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
+                && invalidDropSiege.Archetype == HumanRaidArchetype.Siege
+                && invalidDropSiege.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler
                 && sapperRaid.Archetype == HumanRaidArchetype.Sapper
                 && breachRaid.Archetype == HumanRaidArchetype.Breach
                 && centerDrop.Archetype == HumanRaidArchetype.CenterDrop
@@ -264,6 +296,24 @@ namespace ImmersiveRaidCompression.PickleTests
                 snapshot.ThreatType == "human raid"
                 && !string.IsNullOrWhiteSpace(snapshot.ClassificationSummary),
                 "The human raid record did not contain a classification summary.");
+        }
+
+        [Then("the compressed human siege retains its vanilla siege controller")]
+        public void HumanSiegeRetainsVanillaController(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful human siege compression was recorded.");
+            context.Assert(
+                snapshot.ThreatType == "human raid"
+                && snapshot.ClassificationSummary.Contains("IRC_HumanArchetype_Siege".Translate()),
+                "The compression record was not classified as a human siege.");
+            context.Assert(
+                snapshot.IdentitySummary == "IRC_IdentitySiegePreserved".Translate(),
+                "The siege-specific preservation proof was not recorded.");
+            context.Assert(
+                Find.CurrentMap.lordManager.lords.Any(lord =>
+                    lord.faction == humanSiegeFaction && lord.LordJob is LordJob_Siege),
+                "The compressed force did not retain RimWorld's vanilla LordJob_Siege controller.");
         }
 
         [When("I stage a homogeneous mechanoid edge wave at {int} points")]

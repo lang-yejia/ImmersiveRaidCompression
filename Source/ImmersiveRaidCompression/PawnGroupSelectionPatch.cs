@@ -103,9 +103,11 @@ namespace ImmersiveRaidCompression
                 result.Options.Count(option => option.Option.kind.isBoss),
                 originalComposition,
                 finalComposition,
-                (bossPromoted
-                    ? "IRC_IdentityRolesPreservedBossEligible"
-                    : "IRC_IdentityRolesPreserved").Translate(),
+                !string.IsNullOrEmpty(plan.SuccessIdentityKey)
+                    ? plan.SuccessIdentityKey.Translate()
+                    : (bossPromoted
+                        ? "IRC_IdentityRolesPreservedBossEligible"
+                        : "IRC_IdentityRolesPreserved").Translate(),
                 null,
                 null,
                 plan.ClassificationSummary);

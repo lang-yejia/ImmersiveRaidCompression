@@ -46,6 +46,17 @@ Feature: Immersive Raid Compression runtime smoke
     Then the human raid classifier compresses only ordinary direct assaults
     And no errors were logged
 
+  Scenario: a high-point human siege keeps its vanilla siege workflow
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a human siege raid fires with 30000 points
+    And I wait 180 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the compressed human siege retains its vanilla siege controller
+    And compression history contains detailed before and after compositions
+    And no errors were logged
+
   Scenario: a homogeneous mechanoid swarm arrives in controlled edge waves
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset
