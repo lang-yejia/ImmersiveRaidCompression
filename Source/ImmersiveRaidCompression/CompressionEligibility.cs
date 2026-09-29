@@ -39,6 +39,7 @@ namespace ImmersiveRaidCompression
                 bool specialistRaid = classification.Treatment == HumanRaidTreatment.SapperEscortPromotion
                     || classification.Treatment == HumanRaidTreatment.BreachEscortPromotion;
                 bool dropRaid = classification.Treatment == HumanRaidTreatment.DropAssaultPromotion;
+                bool multiFrontRaid = classification.Treatment == HumanRaidTreatment.MultiFrontPromotion;
                 int targetCount = specialistRaid
                     ? HumanCompressionCountRules.MinimumSpecialistTargetCount(
                         original.Count,
@@ -48,6 +49,10 @@ namespace ImmersiveRaidCompression
                         ? HumanCompressionCountRules.MinimumDropTargetCount(
                             original.Count,
                             settings.humanSoftPawnCap)
+                        : multiFrontRaid
+                            ? HumanCompressionCountRules.MinimumMultiFrontTargetCount(
+                                original.Count,
+                                settings.humanSoftPawnCap)
                     : settings.humanSoftPawnCap;
                 return new CompressionPlan(
                     targetCount,
@@ -57,12 +62,15 @@ namespace ImmersiveRaidCompression
                         || classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
                         || specialistRaid
                         || dropRaid
+                        || multiFrontRaid
                         ? null
                         : "IRC_ReasonProtectedHumanStrategy",
                     specialistRaid
                         ? "IRC_IdentityPathingSpecialistsPreserved"
                         : dropRaid
                             ? "IRC_IdentityDropArrivalPreserved"
+                        : multiFrontRaid
+                            ? "IRC_IdentityMultiFrontArrivalPreserved"
                         : classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
                             ? "IRC_IdentitySiegePreserved"
                             : null);
@@ -105,6 +113,15 @@ namespace ImmersiveRaidCompression
                 int.MaxValue,
                 (boundedOriginal * 4L + 4L) / 5L);
             return Math.Max(configuredCap, minimumDropCount);
+        }
+
+        public static int MinimumMultiFrontTargetCount(int originalCount, int configuredCap)
+        {
+            long boundedOriginal = Math.Max(0, originalCount);
+            int minimumMultiFrontCount = (int)Math.Min(
+                int.MaxValue,
+                (boundedOriginal * 9L + 9L) / 10L);
+            return Math.Max(configuredCap, minimumMultiFrontCount);
         }
     }
 

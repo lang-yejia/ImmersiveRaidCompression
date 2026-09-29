@@ -77,6 +77,7 @@ namespace ImmersiveRaidCompression
         SapperEscortPromotion,
         BreachEscortPromotion,
         DropAssaultPromotion,
+        MultiFrontPromotion,
         ProtectedUntilDedicatedHandler
     }
 
@@ -160,7 +161,11 @@ namespace ImmersiveRaidCompression
             }
             if (Contains(arrivalName, "Groups") || Contains(arrivalName, "Distributed"))
             {
-                return Protected(HumanRaidArchetype.MultiDirection, strategyName, arrivalName);
+                return new HumanRaidClassification(
+                    HumanRaidArchetype.MultiDirection,
+                    HumanRaidTreatment.MultiFrontPromotion,
+                    strategyName,
+                    arrivalName);
             }
             if (arrivalMode == PawnsArrivalModeDefOf.CenterDrop)
             {

@@ -68,12 +68,14 @@
   <IRC_HumanTreatment_SapperEscortPromotion>sapper-safe escort promotion</IRC_HumanTreatment_SapperEscortPromotion>
   <IRC_HumanTreatment_BreachEscortPromotion>breach-safe escort promotion</IRC_HumanTreatment_BreachEscortPromotion>
   <IRC_HumanTreatment_DropAssaultPromotion>drop-assault density-preserving promotion</IRC_HumanTreatment_DropAssaultPromotion>
+  <IRC_HumanTreatment_MultiFrontPromotion>multi-front density-preserving promotion</IRC_HumanTreatment_MultiFrontPromotion>
   <IRC_HumanTreatment_ProtectedUntilDedicatedHandler>kept fully vanilla until a dedicated handler exists</IRC_HumanTreatment_ProtectedUntilDedicatedHandler>
   <IRC_IdentityRolesPreserved>All original roles and protected units remain, and major role ratios passed validation.</IRC_IdentityRolesPreserved>
   <IRC_IdentityRolesPreservedBossEligible>All original roles and protected units remain; one boss was promoted from this vanilla group maker's own weighted candidate pool.</IRC_IdentityRolesPreservedBossEligible>
   <IRC_IdentitySiegePreserved>Only ordinary combat PawnKind selections were compressed. Vanilla siege strategy, raid Lord, construction workflow, mortar blueprints, supplies, protected specialists, and assault transition remain untouched.</IRC_IdentitySiegePreserved>
   <IRC_IdentityPathingSpecialistsPreserved>Every original sapper, breacher, leader, and single-use heavy-weapon carrier remains unchanged. Only ordinary escorts were promoted, at least 75% of the original escort count remains, and vanilla path-opening AI and raid Lord remain in control.</IRC_IdentityPathingSpecialistsPreserved>
   <IRC_IdentityDropArrivalPreserved>The resolved vanilla center/scattered drop worker and landing logic remain unchanged. Protected units remain exact and at least 80% of the original pawn count is retained to preserve immediate drop-assault density.</IRC_IdentityDropArrivalPreserved>
+  <IRC_IdentityMultiFrontArrivalPreserved>The resolved vanilla grouped/distributed arrival worker still selects every approach direction and group position. Protected units remain exact and at least 90% of the original pawn count is retained to preserve pressure on each front.</IRC_IdentityMultiFrontArrivalPreserved>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>

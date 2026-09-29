@@ -99,6 +99,26 @@ Feature: Immersive Raid Compression runtime smoke
     And the compressed random-drop raid preserves its vanilla arrival and density floor
     And no errors were logged
 
+  Scenario: a grouped human edge raid keeps multiple approaches
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a grouped human edge raid fires with 30000 points
+    And I wait 60 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the compressed multi-front raid preserves its vanilla approaches and density floor
+    And no errors were logged
+
+  Scenario: a distributed human edge raid keeps all-around pressure
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a distributed human edge raid fires with 30000 points
+    And I wait 60 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the compressed multi-front raid preserves its vanilla approaches and density floor
+    And no errors were logged
+
   Scenario: a homogeneous mechanoid swarm arrives in controlled edge waves
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

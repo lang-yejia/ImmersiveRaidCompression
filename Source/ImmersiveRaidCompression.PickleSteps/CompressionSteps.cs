@@ -18,6 +18,8 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool humanSpecialistEscortFloorWorks;
         private bool humanDropDensityFloorWorks;
         private Faction humanSiegeFaction;
+        private Faction humanMultiFrontFaction;
+        private int expectedMultiFrontSides;
         private bool phasedMechWaveSplitAndReleased;
         private bool phasedMechWaveUsedEdgeAnchor;
         private bool phasedMechWavesMeetDynamicMinimum;
@@ -181,6 +183,58 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(fired, "The forced human " + description + " raid declined to fire.");
         }
 
+        [When("a grouped human edge raid fires with {int} points")]
+        public void GroupedHumanEdgeRaidFires(PickleContext context, int points)
+        {
+            FireHumanMultiFrontRaid(
+                context,
+                points,
+                DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeWalkInGroups"),
+                2,
+                "grouped edge");
+        }
+
+        [When("a distributed human edge raid fires with {int} points")]
+        public void DistributedHumanEdgeRaidFires(PickleContext context, int points)
+        {
+            FireHumanMultiFrontRaid(
+                context,
+                points,
+                DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeWalkInDistributed"),
+                3,
+                "distributed edge");
+        }
+
+        private void FireHumanMultiFrontRaid(
+            PickleContext context,
+            int points,
+            PawnsArrivalModeDef arrivalMode,
+            int minimumSides,
+            string description)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            FactionDef pirateWaster = DefDatabase<FactionDef>.GetNamed("PirateWaster");
+            humanMultiFrontFaction = Find.FactionManager.FirstFactionOfDef(pirateWaster);
+            context.Assert(
+                humanMultiFrontFaction != null && humanMultiFrontFaction.HostileTo(Faction.OfPlayer),
+                "No hostile waster pirate faction is present in this world.");
+
+            expectedMultiFrontSides = minimumSides;
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("RaidEnemy");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.faction = humanMultiFrontFaction;
+            parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            parms.raidArrivalMode = arrivalMode;
+            parms.forced = true;
+            parms.pawnGroupMakerSeed = context.ScenarioSeed;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced human " + description + " raid declined to fire.");
+        }
+
         [When("a mechanoid raid fires with {int} points")]
         public void MechanoidRaidFires(PickleContext context, int points)
         {
@@ -305,6 +359,8 @@ namespace ImmersiveRaidCompression.PickleTests
             RaidStrategyDef sapper = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackSappers");
             RaidStrategyDef breach = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackBreaching");
             PawnsArrivalModeDef edgeGroups = DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeWalkInGroups");
+            PawnsArrivalModeDef edgeDropGroups = DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeDropGroups");
+            PawnsArrivalModeDef edgeDistributed = DefDatabase<PawnsArrivalModeDef>.GetNamed("EdgeWalkInDistributed");
 
             HumanRaidClassification direct = HumanRaidClassifier.Analyze(
                 Enumerable.Repeat(pirate, 50),
@@ -346,6 +402,14 @@ namespace ImmersiveRaidCompression.PickleTests
                 Enumerable.Repeat(pirate, 50),
                 immediate,
                 edgeGroups);
+            HumanRaidClassification multiDirectionDrop = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                edgeDropGroups);
+            HumanRaidClassification distributed = HumanRaidClassifier.Analyze(
+                Enumerable.Repeat(pirate, 50),
+                immediate,
+                edgeDistributed);
 
             humanRaidClassifierMatchedExpectedFamilies =
                 direct.Archetype == HumanRaidArchetype.DirectAssault
@@ -366,7 +430,10 @@ namespace ImmersiveRaidCompression.PickleTests
                 && randomDrop.Archetype == HumanRaidArchetype.RandomDrop
                 && randomDrop.Treatment == HumanRaidTreatment.DropAssaultPromotion
                 && multiDirection.Archetype == HumanRaidArchetype.MultiDirection
-                && new[] { invalidDropSiege, invalidGroupedBreach, multiDirection }
+                && multiDirection.Treatment == HumanRaidTreatment.MultiFrontPromotion
+                && multiDirectionDrop.Treatment == HumanRaidTreatment.MultiFrontPromotion
+                && distributed.Treatment == HumanRaidTreatment.MultiFrontPromotion
+                && new[] { invalidDropSiege, invalidGroupedBreach }
                     .All(result => result.Treatment == HumanRaidTreatment.ProtectedUntilDedicatedHandler);
             humanSpecialistEscortFloorWorks =
                 HumanCompressionCountRules.MinimumSpecialistTargetCount(100, 10, 20) == 78
@@ -374,6 +441,9 @@ namespace ImmersiveRaidCompression.PickleTests
             humanDropDensityFloorWorks =
                 HumanCompressionCountRules.MinimumDropTargetCount(100, 20) == 80
                 && HumanCompressionCountRules.MinimumDropTargetCount(20, 18) == 18;
+            humanDropDensityFloorWorks = humanDropDensityFloorWorks
+                && HumanCompressionCountRules.MinimumMultiFrontTargetCount(100, 20) == 90
+                && HumanCompressionCountRules.MinimumMultiFrontTargetCount(20, 18) == 18;
         }
 
         [Then("the human raid classifier assigns dedicated treatments and protects invalid combinations")]
@@ -470,6 +540,51 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 snapshot.FinalCount >= System.Math.Ceiling(snapshot.OriginalCount * 0.80f),
                 "The compressed drop raid fell below its eighty-percent pawn-density floor.");
+        }
+
+        [Then("the compressed multi-front raid preserves its vanilla approaches and density floor")]
+        public void MultiFrontRaidPreservesApproaches(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful multi-front raid compression was recorded.");
+            context.Assert(
+                snapshot.ThreatType == "human raid"
+                && snapshot.ClassificationSummary.Contains("IRC_HumanArchetype_MultiDirection".Translate()),
+                "The compression record was not classified as a multi-front human raid.");
+            context.Assert(
+                snapshot.IdentitySummary == "IRC_IdentityMultiFrontArrivalPreserved".Translate(),
+                "The vanilla multi-front arrival and density preservation proof was not recorded.");
+            context.Assert(
+                snapshot.FinalCount >= System.Math.Ceiling(snapshot.OriginalCount * 0.90d),
+                "The compressed multi-front raid fell below its ninety-percent pawn-density floor.");
+
+            Map map = Find.CurrentMap;
+            int representedSides = map.mapPawns.AllPawnsSpawned
+                .Where(pawn => pawn.Faction == humanMultiFrontFaction && !pawn.Dead)
+                .Select(pawn => NearestMapEdge(pawn.Position, map))
+                .Distinct()
+                .Count();
+            context.Assert(
+                representedSides >= expectedMultiFrontSides,
+                "The original arrival worker did not leave enough distinct map-edge approaches after compression.");
+        }
+
+        private static int NearestMapEdge(IntVec3 position, Map map)
+        {
+            int left = position.x;
+            int right = map.Size.x - 1 - position.x;
+            int bottom = position.z;
+            int top = map.Size.z - 1 - position.z;
+            int minimum = System.Math.Min(System.Math.Min(left, right), System.Math.Min(bottom, top));
+            if (minimum == left)
+            {
+                return 0;
+            }
+            if (minimum == right)
+            {
+                return 1;
+            }
+            return minimum == bottom ? 2 : 3;
         }
 
         [When("I stage a homogeneous mechanoid edge wave at {int} points")]
