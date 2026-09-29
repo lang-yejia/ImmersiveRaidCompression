@@ -2,13 +2,14 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.13 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, sappers, breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected.
+Version 0.14 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
 
 ## Implementation status
 
 Implemented and runtime-covered:
 
 - Ordinary human `ImmediateAttack` raids arriving by `EdgeWalkIn` or `EdgeDrop`: classified, then passed to the existing same-role vanilla PawnKind promotion system. Tactical roles, xenotype groups, protected equipment carriers, and 95–105% actual kind cost are preserved.
+- Ordinary tribal raids: potential sapper-capable warrior kinds remain eligible outside actual sapper and breach strategies. Every promotion comes only from the active tribal faction's vanilla group maker, so technology level, xenotype, combat role, leaders, true breachers, and single-use weapons remain intact. Specialist raids continue to use the stricter protection policy.
 - Human `Siege` raids arriving by `EdgeWalkIn`: only ordinary combat PawnKind selections are compressed. The resolved siege strategy, vanilla `LordJob_Siege`, builder assignment, mortar blueprints, construction supplies, protected specialists, preparation phase, and transition to direct assault remain controlled by vanilla code rather than being replaced or reimplemented.
 - Human sapper and breach raids arriving by `EdgeWalkIn`: every original sapper, breacher, leader, and single-use heavy-weapon carrier is retained exactly. Only ordinary escorts are promoted, at least 75% of the original escort count remains, and the vanilla raid Lord and path-opening AI remain in control.
 - Human `CenterDrop` and `RandomDrop` raids: the already-resolved vanilla arrival worker and landing logic remain unchanged. Protected units remain exact and at least 80% of the original pawn count is retained, preserving immediate landing density while still reducing late-game pod and pawn load.
@@ -22,15 +23,16 @@ Implemented and runtime-covered:
 Classified and deliberately protected, but not compressed yet:
 
 - Unknown special human arrival modes outside the explicitly supported edge, drop, grouped, and distributed families.
-- Human factions whose generated roster has no legal same-role vanilla promotion. These remain wholly vanilla instead of receiving a buff or tactically invalid substitution.
+- Human factions whose active vanilla group maker has no legal higher-value same-role PawnKind. These remain wholly vanilla instead of receiving a buff or tactically invalid substitution.
 
-Raid-family classification follows the resolved vanilla raid strategy and arrival mode. An ordinary direct assault does not become a breach raid merely because its roster contains one breach-capable pawn; that individual pawn remains protected by the existing human compression policy while the rest of the ordinary force may still be compressed.
+Raid-family classification follows the resolved vanilla raid strategy and arrival mode. An ordinary direct assault does not become a sapper or breach raid merely because a PawnKind is marked as potentially sapper-capable. That kind may be promoted normally in an ordinary assault; the stricter policy is selected only for a resolved sapper or breach strategy, while true `isGoodBreacher` kinds remain protected everywhere.
 
 Not implemented yet:
 
-- A pirate-specific continuous reinforcement system; human raids do not currently reuse the mechanoid wave controller.
-- Dedicated tribal compression where no higher-value same-role vanilla PawnKind exists.
+- Dedicated pirate continuous reinforcement; human raids do not currently reuse the mechanoid wave controller.
+- Dedicated mechanoid breach/boss-led handling and special mechanoid arrival modes beyond the currently safe promotion/protection rules.
 - Insect infestations and Anomaly-specific threats, which require event-specific lifecycle and objective rules.
+- Quest- or script-driven raids whose authored composition or timing must remain intact.
 
 Before a large ordinary mechanoid raid is changed, a classifier identifies scyther swarms, militor swarms, centipede formations, other role-dominant swarms, mixed forces, breach forces, and boss-led forces. A 100% single-role force may use phased reinforcement only when the vanilla arrival mode is `EdgeWalkIn` or `EdgeDrop` and its generated pawn count exceeds the configurable split threshold. The planner creates no more than three waves, then requires every wave to reach the higher of the fixed point floor and a configurable percentage of the already-adjusted vanilla raid budget. If three waves cannot all qualify, it merges and rebalances them into two; if two qualified batches are impossible, the raid stays whole.
 
@@ -84,6 +86,7 @@ The RimWorld 1.6 runtime suite currently covers four threat families and opens t
 - Human random-drop raid: 115 to 96 pawns, retaining 13,490 of 13,490 vanilla PawnKind points (100.0%) while retaining more than 80% of the landing force.
 - Human grouped edge raid: 232 to 209 pawns, retaining 26,984 of 26,986 vanilla PawnKind points (100.0%) while keeping multiple edge approaches.
 - Human all-around distributed raid: 258 to 233 pawns, retaining 29,987 of 29,992 vanilla PawnKind points (100.0%) while keeping at least three represented map edges.
+- Tribal direct raid: 355 to 299 pawns, retaining 29,976 of 29,984 vanilla PawnKind points (100.0%), using only higher-tier PawnKinds from the active vanilla tribal group maker.
 - Mechanoid raid: mixed forces retain same-role promotion and can add at most one low-probability boss from the current vanilla weighted pool; a deterministic scyther-only force of 66 is rebalanced into three point-qualified waves of 22. The next wave uses native drop pods near a survivor, passes player/base exclusion checks, and joins the original Lord after active combat power falls below the threshold.
 - Manhunter pack: 100 cougars to 75 wargs, retaining 12,000 of 12,000 actual vanilla PawnKind points (100%) with compatible behavior, speed, size, armor, and abilities.
 - Mech cluster A/B sketch: 21 to 18 defenders, retaining 3,615 of 3,670 points (98.5%) while all 74 buildings and the activation state remain field-for-field identical in the deterministic signature.

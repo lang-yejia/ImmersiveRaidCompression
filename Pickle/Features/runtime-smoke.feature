@@ -119,6 +119,17 @@ Feature: Immersive Raid Compression runtime smoke
     And the compressed multi-front raid preserves its vanilla approaches and density floor
     And no errors were logged
 
+  Scenario: a tribal raid promotes its ordinary warriors without losing tribal identity
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a tribal human raid fires with 30000 points
+    And I wait 60 ticks
+    Then the last compression handled a "human raid"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And the tribal raid uses only its vanilla higher-tier roster
+    And compression history contains detailed before and after compositions
+    And no errors were logged
+
   Scenario: a homogeneous mechanoid swarm arrives in controlled edge waves
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

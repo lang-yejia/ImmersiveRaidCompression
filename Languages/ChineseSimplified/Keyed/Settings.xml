@@ -76,6 +76,7 @@
   <IRC_IdentityPathingSpecialistsPreserved>原有工兵、破墙专家、首领和一次性重武器携带者逐个保持不变；只晋升普通护卫，至少保留原护卫数量的 75%，原版开路 AI 与袭击 Lord 继续控制行动。</IRC_IdentityPathingSpecialistsPreserved>
   <IRC_IdentityDropArrivalPreserved>继续使用已经解析的原版中心/分散空投 Worker 与落点逻辑；受保护单位逐个保持不变，并至少保留原人数的 80%，维持空投落地时的即时兵力密度。</IRC_IdentityDropArrivalPreserved>
   <IRC_IdentityMultiFrontArrivalPreserved>继续由已经解析的原版分组/分散入场 Worker 选择各进攻方向和编队位置；受保护单位逐个保持不变，并至少保留原人数的 90%，维持每条战线的压力。</IRC_IdentityMultiFrontArrivalPreserved>
+  <IRC_IdentityTribalPromotionPreserved>只使用当前部落派系活动原版编队生成器中已有的高阶 PawnKind；部落科技水平、异种类型、近战/远程职责、派系首领、真正破墙单位及一次性武器均保持不变。</IRC_IdentityTribalPromotionPreserved>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>

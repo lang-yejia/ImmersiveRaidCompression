@@ -18,7 +18,14 @@ namespace ImmersiveRaidCompression
 
     public sealed class HumanRaidCompressionPolicy : ICompressionPolicy
     {
-        public static readonly HumanRaidCompressionPolicy Instance = new HumanRaidCompressionPolicy();
+        public static readonly HumanRaidCompressionPolicy Instance = new HumanRaidCompressionPolicy(false);
+        public static readonly HumanRaidCompressionPolicy SpecialistInstance = new HumanRaidCompressionPolicy(true);
+        private readonly bool protectSapperCapableKinds;
+
+        private HumanRaidCompressionPolicy(bool protectSapperCapableKinds)
+        {
+            this.protectSapperCapableKinds = protectSapperCapableKinds;
+        }
 
         public string ThreatType => "human raid";
         public float MaximumUpgradeFactor => 3f;
@@ -27,7 +34,9 @@ namespace ImmersiveRaidCompression
         public bool IsProtected(PawnGenOptionWithXenotype option)
         {
             PawnKindDef kind = option.Option.kind;
-            if (kind.factionLeader || kind.isGoodBreacher || kind.canBeSapper)
+            if (kind.factionLeader
+                || kind.isGoodBreacher
+                || (protectSapperCapableKinds && kind.canBeSapper))
             {
                 return true;
             }

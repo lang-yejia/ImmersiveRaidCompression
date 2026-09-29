@@ -17,6 +17,7 @@ namespace ImmersiveRaidCompression.PickleTests
         private bool humanRaidClassifierMatchedExpectedFamilies;
         private bool humanSpecialistEscortFloorWorks;
         private bool humanDropDensityFloorWorks;
+        private bool tribalPolicyDistinguishesPotentialSappers;
         private Faction humanSiegeFaction;
         private Faction humanMultiFrontFaction;
         private int expectedMultiFrontSides;
@@ -235,6 +236,31 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(fired, "The forced human " + description + " raid declined to fire.");
         }
 
+        [When("a tribal human raid fires with {int} points")]
+        public void TribalHumanRaidFires(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            FactionDef tribalDef = DefDatabase<FactionDef>.GetNamed("TribeRoughNeanderthal");
+            Faction faction = Find.FactionManager.FirstFactionOfDef(tribalDef);
+            context.Assert(
+                faction != null && faction.HostileTo(Faction.OfPlayer),
+                "No hostile rough neanderthal tribe is present in this world.");
+
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("RaidEnemy");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.faction = faction;
+            parms.raidStrategy = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
+            parms.raidArrivalMode = PawnsArrivalModeDefOf.EdgeWalkIn;
+            parms.forced = true;
+            parms.pawnGroupMakerSeed = context.ScenarioSeed;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced tribal human raid declined to fire.");
+        }
+
         [When("a mechanoid raid fires with {int} points")]
         public void MechanoidRaidFires(PickleContext context, int points)
         {
@@ -354,6 +380,8 @@ namespace ImmersiveRaidCompression.PickleTests
         {
             PawnKindDef pirate = DefDatabase<PawnKindDef>.GetNamed("Pirate");
             PawnKindDef breacher = DefDatabase<PawnKindDef>.GetNamed("Tribal_Breacher");
+            PawnKindDef tribalWarrior = DefDatabase<PawnKindDef>.GetNamed("Tribal_Warrior");
+            PawnKindDef tribalBerserker = DefDatabase<PawnKindDef>.GetNamed("Tribal_Berserker");
             RaidStrategyDef immediate = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttack");
             RaidStrategyDef siege = DefDatabase<RaidStrategyDef>.GetNamed("Siege");
             RaidStrategyDef sapper = DefDatabase<RaidStrategyDef>.GetNamed("ImmediateAttackSappers");
@@ -444,6 +472,24 @@ namespace ImmersiveRaidCompression.PickleTests
             humanDropDensityFloorWorks = humanDropDensityFloorWorks
                 && HumanCompressionCountRules.MinimumMultiFrontTargetCount(100, 20) == 90
                 && HumanCompressionCountRules.MinimumMultiFrontTargetCount(20, 18) == 18;
+            PawnGenOptionWithXenotype warriorOption = new PawnGenOptionWithXenotype(
+                new PawnGenOption { kind = tribalWarrior },
+                null,
+                1f);
+            PawnGenOptionWithXenotype berserkerOption = new PawnGenOptionWithXenotype(
+                new PawnGenOption { kind = tribalBerserker },
+                null,
+                1f);
+            PawnGenOptionWithXenotype breacherOption = new PawnGenOptionWithXenotype(
+                new PawnGenOption { kind = breacher },
+                null,
+                1f);
+            tribalPolicyDistinguishesPotentialSappers =
+                !HumanRaidCompressionPolicy.Instance.IsProtected(warriorOption)
+                && !HumanRaidCompressionPolicy.Instance.IsProtected(berserkerOption)
+                && HumanRaidCompressionPolicy.SpecialistInstance.IsProtected(warriorOption)
+                && HumanRaidCompressionPolicy.SpecialistInstance.IsProtected(berserkerOption)
+                && HumanRaidCompressionPolicy.Instance.IsProtected(breacherOption);
         }
 
         [Then("the human raid classifier assigns dedicated treatments and protects invalid combinations")]
@@ -452,7 +498,8 @@ namespace ImmersiveRaidCompression.PickleTests
             context.Assert(
                 humanRaidClassifierMatchedExpectedFamilies
                     && humanSpecialistEscortFloorWorks
-                    && humanDropDensityFloorWorks,
+                    && humanDropDensityFloorWorks
+                    && tribalPolicyDistinguishesPotentialSappers,
                 "The human raid classifier did not separate ordinary assaults from siege, sapper, breach, drop, and multi-direction raids.");
         }
 
@@ -585,6 +632,17 @@ namespace ImmersiveRaidCompression.PickleTests
                 return 1;
             }
             return minimum == bottom ? 2 : 3;
+        }
+
+        [Then("the tribal raid uses only its vanilla higher-tier roster")]
+        public void TribalRaidUsesVanillaRoster(PickleContext context)
+        {
+            CompressionSnapshot snapshot = CompressionTelemetry.LastSuccessfulCompression;
+            context.Assert(snapshot != null, "No successful tribal raid compression was recorded.");
+            context.Assert(
+                snapshot.ThreatType == "human raid"
+                && snapshot.IdentitySummary == "IRC_IdentityTribalPromotionPreserved".Translate(),
+                "The tribal vanilla-roster preservation proof was not recorded.");
         }
 
         [When("I stage a homogeneous mechanoid edge wave at {int} points")]

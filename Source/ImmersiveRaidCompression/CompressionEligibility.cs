@@ -40,10 +40,14 @@ namespace ImmersiveRaidCompression
                     || classification.Treatment == HumanRaidTreatment.BreachEscortPromotion;
                 bool dropRaid = classification.Treatment == HumanRaidTreatment.DropAssaultPromotion;
                 bool multiFrontRaid = classification.Treatment == HumanRaidTreatment.MultiFrontPromotion;
+                HumanRaidCompressionPolicy humanPolicy = specialistRaid
+                    ? HumanRaidCompressionPolicy.SpecialistInstance
+                    : HumanRaidCompressionPolicy.Instance;
+                bool tribalRaid = parms.faction.def.techLevel <= TechLevel.Neolithic;
                 int targetCount = specialistRaid
                     ? HumanCompressionCountRules.MinimumSpecialistTargetCount(
                         original.Count,
-                        original.Count(HumanRaidCompressionPolicy.Instance.IsProtected),
+                        original.Count(humanPolicy.IsProtected),
                         settings.humanSoftPawnCap)
                     : dropRaid
                         ? HumanCompressionCountRules.MinimumDropTargetCount(
@@ -56,7 +60,7 @@ namespace ImmersiveRaidCompression
                     : settings.humanSoftPawnCap;
                 return new CompressionPlan(
                     targetCount,
-                    HumanRaidCompressionPolicy.Instance,
+                    humanPolicy,
                     classification.Summary,
                     classification.Treatment == HumanRaidTreatment.VanillaPromotion
                         || classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
@@ -73,7 +77,9 @@ namespace ImmersiveRaidCompression
                             ? "IRC_IdentityMultiFrontArrivalPreserved"
                         : classification.Treatment == HumanRaidTreatment.SiegeVanillaPromotion
                             ? "IRC_IdentitySiegePreserved"
-                            : null);
+                            : tribalRaid
+                                ? "IRC_IdentityTribalPromotionPreserved"
+                                : null);
             }
 
             if (settings.enableMechanoidRaids
