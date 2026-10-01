@@ -19,7 +19,9 @@
   <IRC_EnableInfestations>Compress oversized ordinary infestations</IRC_EnableInfestations>
   <IRC_EnableInfestationsDesc>Only affects the initial insects from the standard Infestation incident. Tunnels, hives, emergence positions, caste presence, and vanilla assault AI remain unchanged.</IRC_EnableInfestationsDesc>
   <IRC_EnableAnomalyMassThreats>Compress oversized Anomaly mass threats</IRC_EnableAnomalyMassThreats>
-  <IRC_EnableAnomalyMassThreatsDesc>Currently handles storyteller Fleshbeast Attack groups. Burrows, positions, emergence timing, special fleshbeasts, and assault behavior remain vanilla. Player rituals and scripted encounters are excluded.</IRC_EnableAnomalyMassThreatsDesc>
+  <IRC_EnableAnomalyMassThreatsDesc>Handles storyteller Fleshbeast Attacks and high-count shambler threats. Small shambler swarms, ghoul attacks, player rituals, and scripted encounters are excluded.</IRC_EnableAnomalyMassThreatsDesc>
+  <IRC_EnablePhasedShamblerWaves>Phase oversized shambler attacks</IRC_EnablePhasedShamblerWaves>
+  <IRC_EnablePhasedShamblerWavesDesc>Splits only large Shambler Swarm and Shambler Assault incidents into two or three substantial waves. No shamblers are replaced or buffed. Each reinforcement uses the matching vanilla edge arrival and joins the original Lord.</IRC_EnablePhasedShamblerWavesDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>Pirate split threshold: more than {0} pawns</IRC_PirateWaveSplitCount>
@@ -41,6 +43,11 @@
   <IRC_MinInfestationPoints>Minimum ordinary infestation points: {0}</IRC_MinInfestationPoints>
   <IRC_FleshbeastSoftPawnCap>Fleshbeasts per burrow-group soft cap: {0}</IRC_FleshbeastSoftPawnCap>
   <IRC_MinAnomalyThreatPoints>Minimum Anomaly mass-threat points: {0}</IRC_MinAnomalyThreatPoints>
+  <IRC_ShamblerWaveSplitCount>Shambler count required for phasing: {0}</IRC_ShamblerWaveSplitCount>
+  <IRC_ShamblerWaveMinimumPoints>Minimum points in each shambler wave: {0}</IRC_ShamblerWaveMinimumPoints>
+  <IRC_ShamblerWaveBudgetFraction>Dynamic shambler-wave floor: {0}% of incident points</IRC_ShamblerWaveBudgetFraction>
+  <IRC_ShamblerWaveTrigger>Release next shambler wave below: {0}% active first-wave power</IRC_ShamblerWaveTrigger>
+  <IRC_ShamblerWaveDelay>Minimum shambler reinforcement spacing: {0} seconds</IRC_ShamblerWaveDelay>
   <IRC_VerboseLogging>Verbose compression logging</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>Writes the original and compressed pawn counts and costs to the game log.</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>Open compression history</IRC_OpenHistory>
@@ -100,6 +107,14 @@
   <IRC_ReasonNoInsectMerge>The generated hive batches had no legal lower-count combination that preserved every selected caste and 95–105% combat power.</IRC_ReasonNoInsectMerge>
   <IRC_FleshbeastClassificationSummary>Storyteller Fleshbeast Attack only; player rituals, pit-gate events, sites, quests, and scripted fleshbeast spawns are excluded.</IRC_FleshbeastClassificationSummary>
   <IRC_IdentityFleshbeastPreserved>Every vanilla-selected fleshbeast kind remains present. Bulbfreaks and bosses remain exact; only duplicate fingerspikes, toughspikes, and trispikes are consolidated within the vanilla spike-ranged family. Burrows, emergence timing, and assault behavior remain vanilla.</IRC_IdentityFleshbeastPreserved>
+  <IRC_ShamblerSwarmClassificationSummary>Large storyteller humanoid Shambler Swarm. Small, ritual, quest, and scripted swarms are excluded; reinforcements reuse the original vanilla edge emergence area.</IRC_ShamblerSwarmClassificationSummary>
+  <IRC_ShamblerAnimalSwarmClassificationSummary>Large storyteller animal shambler swarm. Every original animal kind and rare chimera remains exact; small, ritual, quest, and scripted swarms are excluded.</IRC_ShamblerAnimalSwarmClassificationSummary>
+  <IRC_ShamblerAssaultClassificationSummary>Large storyteller Shambler Assault only. Every wave retains vanilla multi-edge distribution and joins the original assault Lord.</IRC_ShamblerAssaultClassificationSummary>
+  <IRC_IdentityShamblerWavesPreserved>No pawn kind, equipment, health, combat stat, or total combat power was changed. The exact generated shamblers are spread across two or three point-qualified waves, keep their original lifespan, and inherit the original Lord's live assault state.</IRC_IdentityShamblerWavesPreserved>
+  <IRC_ShamblerEdgeSwarmArrival>original shambler-swarm edge area</IRC_ShamblerEdgeSwarmArrival>
+  <IRC_ThreatShamblerSwarm>Shambler swarm</IRC_ThreatShamblerSwarm>
+  <IRC_ThreatShamblerAnimalSwarm>Animal shambler swarm</IRC_ThreatShamblerAnimalSwarm>
+  <IRC_ThreatShamblerAssault>Shambler assault</IRC_ThreatShamblerAssault>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>

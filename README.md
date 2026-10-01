@@ -2,7 +2,7 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.17 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, mech cluster defenders, ordinary infestations, and storyteller-triggered Fleshbeast Attacks. It conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds without adding hidden stat modifiers. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, mechanoid breachers, Bulbfreaks, and fleshbeast bosses are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
+Version 0.18 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, mech cluster defenders, ordinary infestations, storyteller-triggered Fleshbeast Attacks, and high-count shambler threats. It uses stronger vanilla units or two-to-three qualified reinforcement waves without adding hidden stat modifiers. Protected specialists and special encounter structures remain exact; shamblers are never promoted into a tactically different roster.
 
 ## Implementation status
 
@@ -21,6 +21,9 @@ Implemented and runtime-covered:
 - Manhunter packs: replacement only by a stronger vanilla species with compatible predator/herd/pack behavior, mobility, body size, armor, and special abilities.
 - Ordinary `Infestation`: all vanilla tunnel and hive objects remain. The mod evaluates the exact vanilla insect-selection rule for each tunnel, compresses the event-wide initial insect composition to 95–105% combat power, retains at least one of every selected insect kind, and distributes the stronger vanilla insects across the infestation area. Deep-drill, wastepack, quest, and scripted infestations are outside this handler.
 - Storyteller `FleshbeastAttack`: the incident-level point threshold is checked before any change, then each vanilla burrow group's repeated fingerspikes, toughspikes, and trispikes may be consolidated within their shared spike-ranged family. Every kind selected by vanilla remains represented; Bulbfreaks, bosses, unknown specials, burrows, emergence timing, positions, Lords, and assault behavior remain exact. Player rituals, pit-gate events, sites, quests, and scripted spawns never enter this handler. All affected burrow groups are aggregated into one audit record for the incident.
+- Large storyteller `ShamblerSwarm`: the exact generated shamblers are balanced by PawnKind and combat power across two or three substantial waves. The first wave uses the original spawn loop; later waves reuse the same vanilla edge area, lifespan, quest tag, and original `LordJob_EntitySwarm`.
+- Large storyteller `ShamblerSwarmAnimals`: the same phased policy applies without changing the selected animal species or rare chimera rolls. Every generated pawn remains exact.
+- Large storyteller `ShamblerAssault`: each wave calls the original `EdgeWalkInDistributedGroups` worker, preserving multi-edge pressure. Deferred pawns receive the same vanilla shambler lifespan processing and join the first wave's original assault Lord immediately after arrival.
 - Audit history: successful compression and protected/skipped decisions include threat classification and before/after evidence.
 
 Classified and deliberately protected, but not compressed yet:
@@ -32,9 +35,7 @@ Raid-family classification follows the resolved vanilla raid strategy and arriva
 
 Pirate phasing is intentionally narrower than pirate compression. It applies only to vanilla pirate factions whose resolved strategy is an ordinary direct assault and whose arrival is `EdgeWalkIn` or `EdgeDrop`. Siege, sapper, breach, center-drop, random-drop, grouped, distributed, and unknown special arrivals never enter the pirate wave controller. Common melee, ranged, heavy, explosive, area-denial, shield, and xenotype role groups are spread across qualified waves instead of being concentrated in one batch.
 
-Remaining planned work:
-
-- Large storyteller shambler swarms and Shambler Assault raids. Because their vanilla roster has no meaningful same-role high-value melee upgrade, the planned policy is a two-or-three-wave lifecycle-aware implementation rather than turning the swarm into ranged gorehulks.
+The currently agreed performance scope is implemented. Small `SmallShamblerSwarm` incidents, `GhoulAttack`, player-summoned bosses, already-small special threats, rituals, quests, and scripted encounters remain deliberately outside it.
 
 Deliberately outside the current performance scope are player-summoned mech bosses, already-small special threats, and quest/script-authored raids or infestations. Their authored composition and timing stay vanilla.
 
@@ -53,6 +54,8 @@ Mech cluster compression runs only after `MechClusterGenerator` finishes the van
 Ordinary infestation compression plans the whole event rather than treating each tunnel independently. This matters because a standard high-point infestation can create many tunnels that each carry only one low-value initial insect. The planner preserves all tunnels and hives, spreads the reduced force over the original infestation footprint, keeps every vanilla-selected insect caste, and leaves later hive reproduction to vanilla. Only the initial combat wave is compressed.
 
 Fleshbeast Attack compression respects the inverse structure: vanilla splits one incident budget into multiple roughly 500-point burrow groups, so the configurable soft cap applies per burrow group while the minimum point threshold applies to the complete incident. Compression is attempted only inside the three ordinary spike-ranged kinds. A failed group-level identity or 95–105% cost check falls back to that complete vanilla group; successful groups are combined into one event-level history entry so the audit page describes the actual incident rather than flooding it with dozens of small records.
+
+Shambler phasing does not change total count or total combat power; it lowers simultaneous pawn load. It activates only above both the Anomaly incident-point threshold and a configurable pawn-count threshold. The planner requests no more than three waves, requires each wave to reach the higher of a fixed point floor and a percentage of incident points, and replans from three waves to two when a tail is too weak. If two qualified waves are impossible, the complete event stays vanilla. The next wave is released after the short minimum spacing once active, non-downed combat power falls below the configured fraction of first-wave power. Reinforcements join the existing Lord synchronously, so an attacking group receives attacking reinforcements rather than a separate waiting encounter.
 
 The mod settings include a session-local **compression history** page. It records successful compressions and safe fallbacks, with threat source, counts, actual PawnKind cost, retained percentage, event budget, game tick, full before/after composition, and a tactical-identity proof. This audit history is deliberately not written to the save.
 

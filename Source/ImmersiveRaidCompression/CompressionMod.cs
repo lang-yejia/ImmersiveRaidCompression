@@ -20,7 +20,7 @@ namespace ImmersiveRaidCompression
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1680f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 2020f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
@@ -64,6 +64,10 @@ namespace ImmersiveRaidCompression
                 "IRC_EnableAnomalyMassThreats".Translate(),
                 ref Settings.enableAnomalyMassThreats,
                 "IRC_EnableAnomalyMassThreatsDesc".Translate());
+            listing.CheckboxLabeled(
+                "IRC_EnablePhasedShamblerWaves".Translate(),
+                ref Settings.enablePhasedShamblerWaves,
+                "IRC_EnablePhasedShamblerWavesDesc".Translate());
             listing.Gap();
             listing.Label("IRC_MinRaidPoints".Translate(Settings.minimumRaidPoints.ToString("F0")));
             Settings.minimumRaidPoints = Mathf.Round(listing.Slider(Settings.minimumRaidPoints, 500f, 10000f) / 100f) * 100f;
@@ -107,6 +111,16 @@ namespace ImmersiveRaidCompression
             Settings.fleshbeastSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.fleshbeastSoftPawnCap, 4, 24));
             listing.Label("IRC_MinAnomalyThreatPoints".Translate(Settings.minimumAnomalyThreatPoints.ToString("F0")));
             Settings.minimumAnomalyThreatPoints = Mathf.Round(listing.Slider(Settings.minimumAnomalyThreatPoints, 1000f, 15000f) / 500f) * 500f;
+            listing.Label("IRC_ShamblerWaveSplitCount".Translate(Settings.shamblerWaveSplitCountThreshold));
+            Settings.shamblerWaveSplitCountThreshold = Mathf.RoundToInt(listing.Slider(Settings.shamblerWaveSplitCountThreshold, 24, 180));
+            listing.Label("IRC_ShamblerWaveMinimumPoints".Translate(Settings.shamblerWaveMinimumPoints.ToString("F0")));
+            Settings.shamblerWaveMinimumPoints = Mathf.Round(listing.Slider(Settings.shamblerWaveMinimumPoints, 500f, 5000f) / 100f) * 100f;
+            listing.Label("IRC_ShamblerWaveBudgetFraction".Translate((Settings.shamblerWaveBudgetFraction * 100f).ToString("F0")));
+            Settings.shamblerWaveBudgetFraction = Mathf.Round(listing.Slider(Settings.shamblerWaveBudgetFraction, 0.10f, 0.40f) * 20f) / 20f;
+            listing.Label("IRC_ShamblerWaveTrigger".Translate((Settings.shamblerWaveTriggerFraction * 100f).ToString("F0")));
+            Settings.shamblerWaveTriggerFraction = Mathf.Round(listing.Slider(Settings.shamblerWaveTriggerFraction, 0.2f, 0.85f) * 20f) / 20f;
+            listing.Label("IRC_ShamblerWaveDelay".Translate((Settings.shamblerWaveMinimumDelayTicks / 60f).ToString("F0")));
+            Settings.shamblerWaveMinimumDelayTicks = Mathf.RoundToInt(listing.Slider(Settings.shamblerWaveMinimumDelayTicks, 60, 1800) / 60f) * 60;
             listing.CheckboxLabeled(
                 "IRC_VerboseLogging".Translate(),
                 ref Settings.verboseLogging,
@@ -123,7 +137,7 @@ namespace ImmersiveRaidCompression
 
     public sealed class CompressionSettings : ModSettings
     {
-        private int settingsVersion = 4;
+        private int settingsVersion = 5;
         public bool enableHumanRaids = true;
         public bool enablePhasedPirateWaves = true;
         public bool enableTacticalPirateDrops = true;
@@ -134,6 +148,7 @@ namespace ImmersiveRaidCompression
         public bool enableMechClusters = true;
         public bool enableInfestations = true;
         public bool enableAnomalyMassThreats = true;
+        public bool enablePhasedShamblerWaves = true;
         public float minimumRaidPoints = 2500f;
         public float minimumManhunterPoints = 1000f;
         public float minimumMechClusterPoints = 2500f;
@@ -155,6 +170,11 @@ namespace ImmersiveRaidCompression
         public int mechClusterSoftPawnCap = 16;
         public int infestationSoftPawnCap = 45;
         public int fleshbeastSoftPawnCap = 8;
+        public int shamblerWaveSplitCountThreshold = 60;
+        public float shamblerWaveMinimumPoints = 1000f;
+        public float shamblerWaveBudgetFraction = 0.15f;
+        public float shamblerWaveTriggerFraction = 0.65f;
+        public int shamblerWaveMinimumDelayTicks = 180;
         public bool verboseLogging;
 
         public override void ExposeData()
@@ -170,6 +190,7 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref enableMechClusters, "enableMechClusters", true);
             Scribe_Values.Look(ref enableInfestations, "enableInfestations", true);
             Scribe_Values.Look(ref enableAnomalyMassThreats, "enableAnomalyMassThreats", true);
+            Scribe_Values.Look(ref enablePhasedShamblerWaves, "enablePhasedShamblerWaves", true);
             Scribe_Values.Look(ref minimumRaidPoints, "minimumRaidPoints", 2500f);
             Scribe_Values.Look(ref minimumManhunterPoints, "minimumManhunterPoints", 1000f);
             Scribe_Values.Look(ref minimumMechClusterPoints, "minimumMechClusterPoints", 2500f);
@@ -191,6 +212,11 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref mechClusterSoftPawnCap, "mechClusterSoftPawnCap", 16);
             Scribe_Values.Look(ref infestationSoftPawnCap, "infestationSoftPawnCap", 45);
             Scribe_Values.Look(ref fleshbeastSoftPawnCap, "fleshbeastSoftPawnCap", 8);
+            Scribe_Values.Look(ref shamblerWaveSplitCountThreshold, "shamblerWaveSplitCountThreshold", 60);
+            Scribe_Values.Look(ref shamblerWaveMinimumPoints, "shamblerWaveMinimumPoints", 1000f);
+            Scribe_Values.Look(ref shamblerWaveBudgetFraction, "shamblerWaveBudgetFraction", 0.15f);
+            Scribe_Values.Look(ref shamblerWaveTriggerFraction, "shamblerWaveTriggerFraction", 0.65f);
+            Scribe_Values.Look(ref shamblerWaveMinimumDelayTicks, "shamblerWaveMinimumDelayTicks", 180);
             Scribe_Values.Look(ref verboseLogging, "verboseLogging", false);
             if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 1)
             {
@@ -223,6 +249,16 @@ namespace ImmersiveRaidCompression
                 minimumAnomalyThreatPoints = 3000f;
                 fleshbeastSoftPawnCap = 8;
                 settingsVersion = 4;
+            }
+            if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 5)
+            {
+                enablePhasedShamblerWaves = true;
+                shamblerWaveSplitCountThreshold = 60;
+                shamblerWaveMinimumPoints = 1000f;
+                shamblerWaveBudgetFraction = 0.15f;
+                shamblerWaveTriggerFraction = 0.65f;
+                shamblerWaveMinimumDelayTicks = 180;
+                settingsVersion = 5;
             }
         }
     }

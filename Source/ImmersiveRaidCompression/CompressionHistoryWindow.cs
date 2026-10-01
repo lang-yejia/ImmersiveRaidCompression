@@ -168,6 +168,12 @@ namespace ImmersiveRaidCompression
                     return "IRC_ThreatManhunterPack".Translate();
                 case "mech cluster":
                     return "IRC_ThreatMechCluster".Translate();
+                case "shambler swarm":
+                    return "IRC_ThreatShamblerSwarm".Translate();
+                case "shambler animal swarm":
+                    return "IRC_ThreatShamblerAnimalSwarm".Translate();
+                case "shambler assault":
+                    return "IRC_ThreatShamblerAssault".Translate();
                 default:
                     return threatType;
             }

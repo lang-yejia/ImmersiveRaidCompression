@@ -19,7 +19,9 @@
   <IRC_EnableInfestations>压缩规模过大的普通虫族感染</IRC_EnableInfestations>
   <IRC_EnableInfestationsDesc>只处理标准“虫族感染”事件初次出现的虫群；隧道、虫巢、钻出位置、虫阶存在性和原版进攻 AI 均保持不变。</IRC_EnableInfestationsDesc>
   <IRC_EnableAnomalyMassThreats>压缩规模过大的 Anomaly 数量型威胁</IRC_EnableAnomalyMassThreats>
-  <IRC_EnableAnomalyMassThreatsDesc>目前处理叙事者触发的“血肉兽袭击”。地洞、位置、钻出时间、特殊血肉兽和进攻行为保持原版；玩家仪式与脚本遭遇均排除。</IRC_EnableAnomalyMassThreatsDesc>
+  <IRC_EnableAnomalyMassThreatsDesc>处理叙事者触发的血肉兽袭击和高数量蹒跚怪威胁。小型蹒跚怪群、尸鬼袭击、玩家仪式和脚本遭遇均排除。</IRC_EnableAnomalyMassThreatsDesc>
+  <IRC_EnablePhasedShamblerWaves>分批处理规模过大的蹒跚怪袭击</IRC_EnablePhasedShamblerWaves>
+  <IRC_EnablePhasedShamblerWavesDesc>只把大型“蹒跚怪群”和“蹒跚怪强攻”分成两批或三批足量部队；不替换单位、不添加 Buff。每批增援使用相匹配的原版边缘入场，并加入原事件的 Lord。</IRC_EnablePhasedShamblerWavesDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>海盗分批门槛：超过 {0} 人</IRC_PirateWaveSplitCount>
@@ -41,6 +43,11 @@
   <IRC_MinInfestationPoints>普通感染最低生效点数：{0}</IRC_MinInfestationPoints>
   <IRC_FleshbeastSoftPawnCap>每组地洞血肉兽软人数上限：{0}</IRC_FleshbeastSoftPawnCap>
   <IRC_MinAnomalyThreatPoints>Anomaly 数量型威胁最低生效点数：{0}</IRC_MinAnomalyThreatPoints>
+  <IRC_ShamblerWaveSplitCount>蹒跚怪启用分批的数量门槛：{0}</IRC_ShamblerWaveSplitCount>
+  <IRC_ShamblerWaveMinimumPoints>每批蹒跚怪最低点数：{0}</IRC_ShamblerWaveMinimumPoints>
+  <IRC_ShamblerWaveBudgetFraction>动态每批下限：事件点数的 {0}%</IRC_ShamblerWaveBudgetFraction>
+  <IRC_ShamblerWaveTrigger>首批存活战力低于 {0}% 时释放下一批</IRC_ShamblerWaveTrigger>
+  <IRC_ShamblerWaveDelay>蹒跚怪增援最短间隔：{0} 秒</IRC_ShamblerWaveDelay>
   <IRC_VerboseLogging>输出详细压缩日志</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>在游戏日志中记录压缩前后的人数和兵种点数。</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>打开袭击压缩记录</IRC_OpenHistory>
@@ -100,6 +107,14 @@
   <IRC_ReasonNoInsectMerge>当前虫巢批次没有同时满足保留全部已选虫阶、降低数量及维持 95–105% 战力的合法组合。</IRC_ReasonNoInsectMerge>
   <IRC_FleshbeastClassificationSummary>只处理叙事者触发的“血肉兽袭击”；玩家仪式、深坑事件、据点、任务及脚本生成的血肉兽均排除。</IRC_FleshbeastClassificationSummary>
   <IRC_IdentityFleshbeastPreserved>原版选中的每种血肉兽都继续存在。Bulbfreak 与头目逐只保持不变；只在原版尖刺远程家族内合并重复的 Fingerspike、Toughspike 和 Trispike。地洞、钻出时间与进攻行为保持原版。</IRC_IdentityFleshbeastPreserved>
+  <IRC_ShamblerSwarmClassificationSummary>叙事者触发的大型人形“蹒跚怪群”；小型、仪式、任务和脚本尸群均排除，增援复用原事件的原版地图边缘出现区域。</IRC_ShamblerSwarmClassificationSummary>
+  <IRC_ShamblerAnimalSwarmClassificationSummary>叙事者触发的大型动物蹒跚怪群；每种原版动物与低概率奇美拉均逐只保留，小型、仪式、任务及脚本尸群排除。</IRC_ShamblerAnimalSwarmClassificationSummary>
+  <IRC_ShamblerAssaultClassificationSummary>只处理叙事者触发的大型“蹒跚怪强攻”。每一批均保留原版多边缘分散入场，并加入原强攻 Lord。</IRC_ShamblerAssaultClassificationSummary>
+  <IRC_IdentityShamblerWavesPreserved>不修改 PawnKind、装备、生命状态、战斗属性或总战力。原版实际生成的同一批蹒跚怪只被分配到两批或三批达到点数下限的部队，保留各自原版寿命并继承原 Lord 当前的进攻状态。</IRC_IdentityShamblerWavesPreserved>
+  <IRC_ShamblerEdgeSwarmArrival>原蹒跚怪群地图边缘区域</IRC_ShamblerEdgeSwarmArrival>
+  <IRC_ThreatShamblerSwarm>蹒跚怪群</IRC_ThreatShamblerSwarm>
+  <IRC_ThreatShamblerAnimalSwarm>动物蹒跚怪群</IRC_ThreatShamblerAnimalSwarm>
+  <IRC_ThreatShamblerAssault>蹒跚怪强攻</IRC_ThreatShamblerAssault>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>
