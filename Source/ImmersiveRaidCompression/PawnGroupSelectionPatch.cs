@@ -30,15 +30,18 @@ namespace ImmersiveRaidCompression
             if (!plan.ShouldCompress)
             {
                 string protectedComposition = CompressionTelemetry.DescribeComposition(original);
-                CompressionTelemetry.RecordSkipped(
-                    plan.Policy.ThreatType,
-                    groupParms.faction.Name,
-                    original.Count,
-                    original.Sum(option => option.Cost),
-                    pointsTotal,
-                    protectedComposition,
-                    plan.ProtectedReasonKey.Translate(),
-                    plan.ClassificationSummary);
+                if (!FleshbeastAttackContextPatch.OwnsTelemetry)
+                {
+                    CompressionTelemetry.RecordSkipped(
+                        plan.Policy.ThreatType,
+                        groupParms.faction.Name,
+                        original.Count,
+                        original.Sum(option => option.Cost),
+                        pointsTotal,
+                        protectedComposition,
+                        plan.ProtectedReasonKey.Translate(),
+                        plan.ClassificationSummary);
+                }
                 if (CompressionMod.Settings.verboseLogging)
                 {
                     Verse.Log.Message(
@@ -61,15 +64,18 @@ namespace ImmersiveRaidCompression
             if (!result.Changed)
             {
                 string composition = CompressionTelemetry.DescribeComposition(original);
-                CompressionTelemetry.RecordSkipped(
-                    plan.Policy.ThreatType,
-                    groupParms.faction.Name,
-                    original.Count,
-                    result.OriginalCost,
-                    pointsTotal,
-                    composition,
-                    "IRC_ReasonNoPromotion".Translate(),
-                    plan.ClassificationSummary);
+                if (!FleshbeastAttackContextPatch.OwnsTelemetry)
+                {
+                    CompressionTelemetry.RecordSkipped(
+                        plan.Policy.ThreatType,
+                        groupParms.faction.Name,
+                        original.Count,
+                        result.OriginalCost,
+                        pointsTotal,
+                        composition,
+                        "IRC_ReasonNoPromotion".Translate(),
+                        plan.ClassificationSummary);
+                }
                 if (CompressionMod.Settings.verboseLogging)
                 {
                     Verse.Log.Message(
@@ -91,26 +97,29 @@ namespace ImmersiveRaidCompression
             string finalComposition = CompressionTelemetry.DescribeComposition(result.Options);
             bool bossPromoted = result.Options.Count(option => option.Option.kind.isBoss)
                 > original.Count(option => option.Option.kind.isBoss);
-            CompressionTelemetry.Record(
-                plan.Policy.ThreatType,
-                groupParms.faction.Name,
-                original.Count,
-                result.Options.Count,
-                result.OriginalCost,
-                result.FinalCost,
-                pointsTotal,
-                original.Count(option => option.Option.kind.isBoss),
-                result.Options.Count(option => option.Option.kind.isBoss),
-                originalComposition,
-                finalComposition,
-                !string.IsNullOrEmpty(plan.SuccessIdentityKey)
-                    ? plan.SuccessIdentityKey.Translate()
-                    : (bossPromoted
-                        ? "IRC_IdentityRolesPreservedBossEligible"
-                        : "IRC_IdentityRolesPreserved").Translate(),
-                null,
-                null,
-                plan.ClassificationSummary);
+            if (!FleshbeastAttackContextPatch.TryRecordSuccessfulCompression(groupParms.faction, original, result))
+            {
+                CompressionTelemetry.Record(
+                    plan.Policy.ThreatType,
+                    groupParms.faction.Name,
+                    original.Count,
+                    result.Options.Count,
+                    result.OriginalCost,
+                    result.FinalCost,
+                    pointsTotal,
+                    original.Count(option => option.Option.kind.isBoss),
+                    result.Options.Count(option => option.Option.kind.isBoss),
+                    originalComposition,
+                    finalComposition,
+                    !string.IsNullOrEmpty(plan.SuccessIdentityKey)
+                        ? plan.SuccessIdentityKey.Translate()
+                        : (bossPromoted
+                            ? "IRC_IdentityRolesPreservedBossEligible"
+                            : "IRC_IdentityRolesPreserved").Translate(),
+                    null,
+                    null,
+                    plan.ClassificationSummary);
+            }
             Verse.Log.Message(
                 "[Immersive Raid Compression] " + groupParms.faction.Name
                 + " (" + plan.Policy.ThreatType + ")"

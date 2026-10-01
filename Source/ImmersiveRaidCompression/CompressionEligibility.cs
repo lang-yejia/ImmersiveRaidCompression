@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using Verse;
 
 namespace ImmersiveRaidCompression
 {
@@ -15,6 +16,21 @@ namespace ImmersiveRaidCompression
             if (settings == null || parms == null)
             {
                 return null;
+            }
+
+            if (FleshbeastAttackContextPatch.Active
+                && settings.enableAnomalyMassThreats
+                && ModsConfig.AnomalyActive
+                && parms.groupKind?.defName == "Fleshbeasts"
+                && FleshbeastAttackContextPatch.Points >= settings.minimumAnomalyThreatPoints
+                && original.Count > settings.fleshbeastSoftPawnCap)
+            {
+                return new CompressionPlan(
+                    settings.fleshbeastSoftPawnCap,
+                    FleshbeastCompressionPolicy.Instance,
+                    "IRC_FleshbeastClassificationSummary".Translate(),
+                    null,
+                    "IRC_IdentityFleshbeastPreserved");
             }
 
             if (parms.groupKind != PawnGroupKindDefOf.Combat || parms.raidStrategy == null)

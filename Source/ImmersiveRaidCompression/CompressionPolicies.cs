@@ -11,6 +11,7 @@ namespace ImmersiveRaidCompression
         string ThreatType { get; }
         float MaximumUpgradeFactor { get; }
         int MaximumMergeWidth { get; }
+        bool PreserveKindPresence { get; }
         bool IsProtected(PawnGenOptionWithXenotype option);
         bool IsCandidateAllowed(PawnGenOptionWithXenotype option);
         string RoleFor(PawnGenOptionWithXenotype option);
@@ -30,6 +31,7 @@ namespace ImmersiveRaidCompression
         public string ThreatType => "human raid";
         public float MaximumUpgradeFactor => 3f;
         public int MaximumMergeWidth => 2;
+        public bool PreserveKindPresence => false;
 
         public bool IsProtected(PawnGenOptionWithXenotype option)
         {
@@ -121,6 +123,7 @@ namespace ImmersiveRaidCompression
         public string ThreatType => "mechanoid raid";
         public float MaximumUpgradeFactor => 4f;
         public int MaximumMergeWidth => 3;
+        public bool PreserveKindPresence => false;
 
         public bool IsProtected(PawnGenOptionWithXenotype option)
         {

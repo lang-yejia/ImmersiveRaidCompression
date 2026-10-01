@@ -18,6 +18,8 @@
   <IRC_EnableMechClustersDesc>Only compresses same-role mechanoids in the cluster sketch. Buildings, turrets, shields, problem causers, activation, and positions remain vanilla.</IRC_EnableMechClustersDesc>
   <IRC_EnableInfestations>Compress oversized ordinary infestations</IRC_EnableInfestations>
   <IRC_EnableInfestationsDesc>Only affects the initial insects from the standard Infestation incident. Tunnels, hives, emergence positions, caste presence, and vanilla assault AI remain unchanged.</IRC_EnableInfestationsDesc>
+  <IRC_EnableAnomalyMassThreats>Compress oversized Anomaly mass threats</IRC_EnableAnomalyMassThreats>
+  <IRC_EnableAnomalyMassThreatsDesc>Currently handles storyteller Fleshbeast Attack groups. Burrows, positions, emergence timing, special fleshbeasts, and assault behavior remain vanilla. Player rituals and scripted encounters are excluded.</IRC_EnableAnomalyMassThreatsDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>Pirate split threshold: more than {0} pawns</IRC_PirateWaveSplitCount>
@@ -37,6 +39,8 @@
   <IRC_MinMechClusterPoints>Minimum mech cluster points: {0}</IRC_MinMechClusterPoints>
   <IRC_InfestationSoftPawnCap>Ordinary infestation soft pawn cap: {0}</IRC_InfestationSoftPawnCap>
   <IRC_MinInfestationPoints>Minimum ordinary infestation points: {0}</IRC_MinInfestationPoints>
+  <IRC_FleshbeastSoftPawnCap>Fleshbeasts per burrow-group soft cap: {0}</IRC_FleshbeastSoftPawnCap>
+  <IRC_MinAnomalyThreatPoints>Minimum Anomaly mass-threat points: {0}</IRC_MinAnomalyThreatPoints>
   <IRC_VerboseLogging>Verbose compression logging</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>Writes the original and compressed pawn counts and costs to the game log.</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>Open compression history</IRC_OpenHistory>
@@ -94,6 +98,8 @@
   <IRC_InfestationClassificationSummary>Standard Infestation initial emergence; deep-drill, wastepack, quest, and scripted infestations are excluded.</IRC_InfestationClassificationSummary>
   <IRC_IdentityInfestationPreserved>Every insect caste selected by vanilla remains represented. Only duplicate caste members were consolidated into stronger insects from the same vanilla hive pool; tunnels, hives, locations, and assault AI remain vanilla.</IRC_IdentityInfestationPreserved>
   <IRC_ReasonNoInsectMerge>The generated hive batches had no legal lower-count combination that preserved every selected caste and 95–105% combat power.</IRC_ReasonNoInsectMerge>
+  <IRC_FleshbeastClassificationSummary>Storyteller Fleshbeast Attack only; player rituals, pit-gate events, sites, quests, and scripted fleshbeast spawns are excluded.</IRC_FleshbeastClassificationSummary>
+  <IRC_IdentityFleshbeastPreserved>Every vanilla-selected fleshbeast kind remains present. Bulbfreaks and bosses remain exact; only duplicate fingerspikes, toughspikes, and trispikes are consolidated within the vanilla spike-ranged family. Burrows, emergence timing, and assault behavior remain vanilla.</IRC_IdentityFleshbeastPreserved>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>

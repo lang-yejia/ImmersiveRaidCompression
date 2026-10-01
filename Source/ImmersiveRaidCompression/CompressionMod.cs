@@ -20,7 +20,7 @@ namespace ImmersiveRaidCompression
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1540f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 18f, 1680f);
             Widgets.BeginScrollView(inRect, ref settingsScrollPosition, viewRect);
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(viewRect);
@@ -60,6 +60,10 @@ namespace ImmersiveRaidCompression
                 "IRC_EnableInfestations".Translate(),
                 ref Settings.enableInfestations,
                 "IRC_EnableInfestationsDesc".Translate());
+            listing.CheckboxLabeled(
+                "IRC_EnableAnomalyMassThreats".Translate(),
+                ref Settings.enableAnomalyMassThreats,
+                "IRC_EnableAnomalyMassThreatsDesc".Translate());
             listing.Gap();
             listing.Label("IRC_MinRaidPoints".Translate(Settings.minimumRaidPoints.ToString("F0")));
             Settings.minimumRaidPoints = Mathf.Round(listing.Slider(Settings.minimumRaidPoints, 500f, 10000f) / 100f) * 100f;
@@ -99,6 +103,10 @@ namespace ImmersiveRaidCompression
             Settings.infestationSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.infestationSoftPawnCap, 20, 120));
             listing.Label("IRC_MinInfestationPoints".Translate(Settings.minimumInfestationPoints.ToString("F0")));
             Settings.minimumInfestationPoints = Mathf.Round(listing.Slider(Settings.minimumInfestationPoints, 1000f, 15000f) / 500f) * 500f;
+            listing.Label("IRC_FleshbeastSoftPawnCap".Translate(Settings.fleshbeastSoftPawnCap));
+            Settings.fleshbeastSoftPawnCap = Mathf.RoundToInt(listing.Slider(Settings.fleshbeastSoftPawnCap, 4, 24));
+            listing.Label("IRC_MinAnomalyThreatPoints".Translate(Settings.minimumAnomalyThreatPoints.ToString("F0")));
+            Settings.minimumAnomalyThreatPoints = Mathf.Round(listing.Slider(Settings.minimumAnomalyThreatPoints, 1000f, 15000f) / 500f) * 500f;
             listing.CheckboxLabeled(
                 "IRC_VerboseLogging".Translate(),
                 ref Settings.verboseLogging,
@@ -115,7 +123,7 @@ namespace ImmersiveRaidCompression
 
     public sealed class CompressionSettings : ModSettings
     {
-        private int settingsVersion = 3;
+        private int settingsVersion = 4;
         public bool enableHumanRaids = true;
         public bool enablePhasedPirateWaves = true;
         public bool enableTacticalPirateDrops = true;
@@ -125,10 +133,12 @@ namespace ImmersiveRaidCompression
         public bool enableManhunterPacks = true;
         public bool enableMechClusters = true;
         public bool enableInfestations = true;
+        public bool enableAnomalyMassThreats = true;
         public float minimumRaidPoints = 2500f;
         public float minimumManhunterPoints = 1000f;
         public float minimumMechClusterPoints = 2500f;
         public float minimumInfestationPoints = 5000f;
+        public float minimumAnomalyThreatPoints = 3000f;
         public int humanSoftPawnCap = 45;
         public int pirateWaveSplitCountThreshold = 36;
         public float pirateWaveMinimumPoints = 1500f;
@@ -144,6 +154,7 @@ namespace ImmersiveRaidCompression
         public int manhunterSoftPawnCap = 30;
         public int mechClusterSoftPawnCap = 16;
         public int infestationSoftPawnCap = 45;
+        public int fleshbeastSoftPawnCap = 8;
         public bool verboseLogging;
 
         public override void ExposeData()
@@ -158,10 +169,12 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref enableManhunterPacks, "enableManhunterPacks", true);
             Scribe_Values.Look(ref enableMechClusters, "enableMechClusters", true);
             Scribe_Values.Look(ref enableInfestations, "enableInfestations", true);
+            Scribe_Values.Look(ref enableAnomalyMassThreats, "enableAnomalyMassThreats", true);
             Scribe_Values.Look(ref minimumRaidPoints, "minimumRaidPoints", 2500f);
             Scribe_Values.Look(ref minimumManhunterPoints, "minimumManhunterPoints", 1000f);
             Scribe_Values.Look(ref minimumMechClusterPoints, "minimumMechClusterPoints", 2500f);
             Scribe_Values.Look(ref minimumInfestationPoints, "minimumInfestationPoints", 5000f);
+            Scribe_Values.Look(ref minimumAnomalyThreatPoints, "minimumAnomalyThreatPoints", 3000f);
             Scribe_Values.Look(ref humanSoftPawnCap, "humanSoftPawnCap", 45);
             Scribe_Values.Look(ref pirateWaveSplitCountThreshold, "pirateWaveSplitCountThreshold", 36);
             Scribe_Values.Look(ref pirateWaveMinimumPoints, "pirateWaveMinimumPoints", 1500f);
@@ -177,6 +190,7 @@ namespace ImmersiveRaidCompression
             Scribe_Values.Look(ref manhunterSoftPawnCap, "manhunterSoftPawnCap", 30);
             Scribe_Values.Look(ref mechClusterSoftPawnCap, "mechClusterSoftPawnCap", 16);
             Scribe_Values.Look(ref infestationSoftPawnCap, "infestationSoftPawnCap", 45);
+            Scribe_Values.Look(ref fleshbeastSoftPawnCap, "fleshbeastSoftPawnCap", 8);
             Scribe_Values.Look(ref verboseLogging, "verboseLogging", false);
             if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 1)
             {
@@ -202,6 +216,13 @@ namespace ImmersiveRaidCompression
                 minimumInfestationPoints = 5000f;
                 infestationSoftPawnCap = 45;
                 settingsVersion = 3;
+            }
+            if (Scribe.mode == LoadSaveMode.LoadingVars && settingsVersion < 4)
+            {
+                enableAnomalyMassThreats = true;
+                minimumAnomalyThreatPoints = 3000f;
+                fleshbeastSoftPawnCap = 8;
+                settingsVersion = 4;
             }
         }
     }

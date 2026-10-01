@@ -1,5 +1,17 @@
 Feature: Immersive Raid Compression runtime smoke
 
+  Scenario: a large storyteller fleshbeast attack keeps its vanilla burrows
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When a storyteller fleshbeast attack fires with 30000 points
+    And I wait 1 ticks
+    Then the last compression handled a "fleshbeast attack"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And compression history contains detailed before and after compositions
+    And the last compression preserved its tactical identity
+    And the fleshbeast attack kept its vanilla burrow spawners
+    And no errors were logged
+
   Scenario: a large ordinary infestation compresses insects without changing its tunnels
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

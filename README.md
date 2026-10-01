@@ -2,7 +2,7 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.16 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, mech cluster defenders, and ordinary infestations. It conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds without adding hidden stat modifiers. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
+Version 0.17 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, mech cluster defenders, ordinary infestations, and storyteller-triggered Fleshbeast Attacks. It conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds without adding hidden stat modifiers. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, mechanoid breachers, Bulbfreaks, and fleshbeast bosses are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
 
 ## Implementation status
 
@@ -20,6 +20,7 @@ Implemented and runtime-covered:
 - Mech clusters: defender-only compression; structures, positions, materials, rotation, quality, hit points, and activation state remain untouched.
 - Manhunter packs: replacement only by a stronger vanilla species with compatible predator/herd/pack behavior, mobility, body size, armor, and special abilities.
 - Ordinary `Infestation`: all vanilla tunnel and hive objects remain. The mod evaluates the exact vanilla insect-selection rule for each tunnel, compresses the event-wide initial insect composition to 95–105% combat power, retains at least one of every selected insect kind, and distributes the stronger vanilla insects across the infestation area. Deep-drill, wastepack, quest, and scripted infestations are outside this handler.
+- Storyteller `FleshbeastAttack`: the incident-level point threshold is checked before any change, then each vanilla burrow group's repeated fingerspikes, toughspikes, and trispikes may be consolidated within their shared spike-ranged family. Every kind selected by vanilla remains represented; Bulbfreaks, bosses, unknown specials, burrows, emergence timing, positions, Lords, and assault behavior remain exact. Player rituals, pit-gate events, sites, quests, and scripted spawns never enter this handler. All affected burrow groups are aggregated into one audit record for the incident.
 - Audit history: successful compression and protected/skipped decisions include threat classification and before/after evidence.
 
 Classified and deliberately protected, but not compressed yet:
@@ -33,7 +34,7 @@ Pirate phasing is intentionally narrower than pirate compression. It applies onl
 
 Remaining planned work:
 
-- Anomaly mass threats that commonly create large pawn counts, especially shambler and fleshbeast swarms. Each family will receive its own lifecycle-aware policy.
+- Large storyteller shambler swarms and Shambler Assault raids. Because their vanilla roster has no meaningful same-role high-value melee upgrade, the planned policy is a two-or-three-wave lifecycle-aware implementation rather than turning the swarm into ranged gorehulks.
 
 Deliberately outside the current performance scope are player-summoned mech bosses, already-small special threats, and quest/script-authored raids or infestations. Their authored composition and timing stay vanilla.
 
@@ -50,6 +51,8 @@ Manhunter replacements must match the original species' predator, herd, and pack
 Mech cluster compression runs only after `MechClusterGenerator` finishes the vanilla sketch and only replaces entries in its defender list. The building sketch, turrets, shields, problem causers, walls, dormancy/activation state, and all surviving or replacement defender positions remain vanilla. A deterministic A/B runtime test generates the same cluster with compression disabled and enabled and compares every building's definition, material, position, rotation, quality, and hit points.
 
 Ordinary infestation compression plans the whole event rather than treating each tunnel independently. This matters because a standard high-point infestation can create many tunnels that each carry only one low-value initial insect. The planner preserves all tunnels and hives, spreads the reduced force over the original infestation footprint, keeps every vanilla-selected insect caste, and leaves later hive reproduction to vanilla. Only the initial combat wave is compressed.
+
+Fleshbeast Attack compression respects the inverse structure: vanilla splits one incident budget into multiple roughly 500-point burrow groups, so the configurable soft cap applies per burrow group while the minimum point threshold applies to the complete incident. Compression is attempted only inside the three ordinary spike-ranged kinds. A failed group-level identity or 95–105% cost check falls back to that complete vanilla group; successful groups are combined into one event-level history entry so the audit page describes the actual incident rather than flooding it with dozens of small records.
 
 The mod settings include a session-local **compression history** page. It records successful compressions and safe fallbacks, with threat source, counts, actual PawnKind cost, retained percentage, event budget, game tick, full before/after composition, and a tactical-identity proof. This audit history is deliberately not written to the save.
 
@@ -98,5 +101,6 @@ The RimWorld 1.6 runtime suite currently covers four threat families and opens t
 - Mech cluster A/B sketch: 21 to 18 defenders, retaining 3,615 of 3,670 points (98.5%) while all 74 buildings and the activation state remain field-for-field identical in the deterministic signature.
 - Real mech-cluster incident: 21 to 20 defenders, retaining 4,285 of 4,315 points (99.3%) and spawning successfully.
 - Ordinary infestation: 62 vanilla tunnels and 62 hives remain unchanged while the initial force falls from 62 insects to 17 stronger vanilla insects; the targeted runtime scenario verifies 95–105% combat-power retention and complete before/after telemetry.
+- Storyteller Fleshbeast Attack: in the targeted 30,000-point incident, the affected vanilla burrow groups fell from 76 to 60 ordinary spike-ranged fleshbeasts while retaining 3,895 of 3,935 PawnKind points (99.0%). The scenario also verifies that vanilla pit-burrow spawners are still created, every selected kind remains represented, and the audit page receives one aggregated event record.
 
-The established 17-scenario suite covers the earlier threat families. The new ordinary-infestation scenario was run separately to avoid repeating the broad matrix: it passed in RimWorld 1.6 after 1,800 simulated ticks, including count reduction, 95–105% cost retention, tactical-identity proof, detailed telemetry, and exact tunnel/hive preservation. Dedicated scenarios prove that scyther swarms, mixed forces, breach forces, and boss-led forces receive distinct safe treatment decisions; only edge-walk and edge-drop pure-role swarms are wave-eligible; and a deferred wave releases automatically from the resolved vanilla edge region.
+The established 17-scenario suite covers the earlier threat families. The ordinary-infestation scenario passed separately after 1,800 simulated ticks, including exact tunnel/hive preservation. The targeted Fleshbeast Attack scenario also passed independently in RimWorld 1.6, including count reduction, 95–105% cost retention, kind-set identity proof, detailed aggregated telemetry, and vanilla pit-burrow creation. Dedicated scenarios prove that scyther swarms, mixed forces, breach forces, and boss-led forces receive distinct safe treatment decisions; only edge-walk and edge-drop pure-role swarms are wave-eligible; and a deferred wave releases automatically from the resolved vanilla edge region.

@@ -112,6 +112,25 @@ namespace ImmersiveRaidCompression
                 return false;
             }
 
+            if (policy.PreserveKindPresence)
+            {
+                List<string> originalKinds = original
+                    .Select(option => option.Option.kind.defName)
+                    .Distinct()
+                    .OrderBy(name => name)
+                    .ToList();
+                List<string> finalKinds = compressed
+                    .Select(option => option.Option.kind.defName)
+                    .Distinct()
+                    .OrderBy(name => name)
+                    .ToList();
+                if (!originalKinds.SequenceEqual(finalKinds))
+                {
+                    reason = "kind-set-changed";
+                    return false;
+                }
+            }
+
             foreach (KeyValuePair<string, int> role in originalRoles)
             {
                 float originalShare = role.Value / (float)original.Count;

@@ -18,6 +18,8 @@
   <IRC_EnableMechClustersDesc>只压缩集群草图中的同职责机械体；建筑、炮塔、护盾、问题建筑、唤醒方式和落点完全保持原版。</IRC_EnableMechClustersDesc>
   <IRC_EnableInfestations>压缩规模过大的普通虫族感染</IRC_EnableInfestations>
   <IRC_EnableInfestationsDesc>只处理标准“虫族感染”事件初次出现的虫群；隧道、虫巢、钻出位置、虫阶存在性和原版进攻 AI 均保持不变。</IRC_EnableInfestationsDesc>
+  <IRC_EnableAnomalyMassThreats>压缩规模过大的 Anomaly 数量型威胁</IRC_EnableAnomalyMassThreats>
+  <IRC_EnableAnomalyMassThreatsDesc>目前处理叙事者触发的“血肉兽袭击”。地洞、位置、钻出时间、特殊血肉兽和进攻行为保持原版；玩家仪式与脚本遭遇均排除。</IRC_EnableAnomalyMassThreatsDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>海盗分批门槛：超过 {0} 人</IRC_PirateWaveSplitCount>
@@ -37,6 +39,8 @@
   <IRC_MinMechClusterPoints>机械集群最低生效点数：{0}</IRC_MinMechClusterPoints>
   <IRC_InfestationSoftPawnCap>普通感染虫群软人数上限：{0}</IRC_InfestationSoftPawnCap>
   <IRC_MinInfestationPoints>普通感染最低生效点数：{0}</IRC_MinInfestationPoints>
+  <IRC_FleshbeastSoftPawnCap>每组地洞血肉兽软人数上限：{0}</IRC_FleshbeastSoftPawnCap>
+  <IRC_MinAnomalyThreatPoints>Anomaly 数量型威胁最低生效点数：{0}</IRC_MinAnomalyThreatPoints>
   <IRC_VerboseLogging>输出详细压缩日志</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>在游戏日志中记录压缩前后的人数和兵种点数。</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>打开袭击压缩记录</IRC_OpenHistory>
@@ -94,6 +98,8 @@
   <IRC_InfestationClassificationSummary>仅处理标准“虫族感染”的初次钻出；深钻、污染物、任务及脚本感染均排除。</IRC_InfestationClassificationSummary>
   <IRC_IdentityInfestationPreserved>原版实际选中的每种虫阶都至少保留一只；只把重复虫阶合并为同一原版虫巢池中的高阶虫族，隧道、虫巢、位置和进攻 AI 保持原版。</IRC_IdentityInfestationPreserved>
   <IRC_ReasonNoInsectMerge>当前虫巢批次没有同时满足保留全部已选虫阶、降低数量及维持 95–105% 战力的合法组合。</IRC_ReasonNoInsectMerge>
+  <IRC_FleshbeastClassificationSummary>只处理叙事者触发的“血肉兽袭击”；玩家仪式、深坑事件、据点、任务及脚本生成的血肉兽均排除。</IRC_FleshbeastClassificationSummary>
+  <IRC_IdentityFleshbeastPreserved>原版选中的每种血肉兽都继续存在。Bulbfreak 与头目逐只保持不变；只在原版尖刺远程家族内合并重复的 Fingerspike、Toughspike 和 Trispike。地洞、钻出时间与进攻行为保持原版。</IRC_IdentityFleshbeastPreserved>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>

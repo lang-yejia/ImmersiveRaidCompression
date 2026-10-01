@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using RimWorks.Pickle;
+using RimWorks.Pickle.Runtime;
 using RimWorld;
 using Verse;
 using Verse.AI.Group;
@@ -36,6 +39,7 @@ namespace ImmersiveRaidCompression.PickleTests
         private Faction phasedPirateFaction;
         private int ordinaryInfestationTunnelCount;
         private int ordinaryInfestationHiveCountBefore;
+        private int fleshbeastBurrowSpawnerCount;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -69,6 +73,64 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.enableInfestations = true;
             CompressionMod.Settings.minimumInfestationPoints = 1000f;
             CompressionMod.Settings.infestationSoftPawnCap = 8;
+            CompressionMod.Settings.enableAnomalyMassThreats = true;
+            CompressionMod.Settings.minimumAnomalyThreatPoints = 1000f;
+            CompressionMod.Settings.fleshbeastSoftPawnCap = 8;
+        }
+
+        [When("a storyteller fleshbeast attack fires with {int} points")]
+        public async Task StorytellerFleshbeastAttackFires(PickleContext context, int points)
+        {
+            bool completed = false;
+            Exception failure = null;
+            PickleDriver.Post(() =>
+            {
+                try
+                {
+                    Map map = Find.CurrentMap;
+                    if (map == null)
+                    {
+                        throw new InvalidOperationException("No current map is loaded.");
+                    }
+                    ThingDef spawnerDef = DefDatabase<ThingDef>.GetNamed("PitBurrowSpawner");
+                    int before = map.listerThings.ThingsOfDef(spawnerDef).Count;
+                    IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("FleshbeastAttack");
+                    IncidentParms parms = new IncidentParms
+                    {
+                        target = map,
+                        points = points,
+                        forced = true
+                    };
+
+                    if (!incident.Worker.TryExecute(parms))
+                    {
+                        throw new InvalidOperationException("The forced storyteller Fleshbeast Attack declined to fire.");
+                    }
+                    fleshbeastBurrowSpawnerCount = map.listerThings.ThingsOfDef(spawnerDef).Count - before;
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+                finally
+                {
+                    completed = true;
+                }
+            });
+
+            await context.WaitUntil(() => completed, 60f);
+            if (failure != null)
+            {
+                throw failure;
+            }
+        }
+
+        [Then("the fleshbeast attack kept its vanilla burrow spawners")]
+        public void FleshbeastAttackKeptBurrowSpawners(PickleContext context)
+        {
+            context.Assert(
+                fleshbeastBurrowSpawnerCount > 0,
+                "The Fleshbeast Attack created no vanilla pit-burrow spawners.");
         }
 
         [When("an ordinary infestation fires with {int} points")]

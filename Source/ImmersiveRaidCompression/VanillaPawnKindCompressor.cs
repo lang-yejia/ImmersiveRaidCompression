@@ -131,6 +131,15 @@ namespace ImmersiveRaidCompression
 
             foreach (List<IndexedOption> mergeGroup in mergeable)
             {
+                if (policy.PreserveKindPresence
+                    && mergeGroup
+                        .GroupBy(item => item.Option.Option.kind)
+                        .Any(group => group.Count() >= chosen.Count(option =>
+                            option.Option.kind == group.Key)))
+                {
+                    continue;
+                }
+
                 float availableCost = mergeGroup.Sum(item => item.Option.Cost);
                 float oldHighestCost = mergeGroup.Max(item => item.Option.Cost);
                 HashSet<int> removedIndices = new HashSet<int>(mergeGroup.Select(item => item.Index));
@@ -242,6 +251,12 @@ namespace ImmersiveRaidCompression
                 {
                     PawnGenOptionWithXenotype current = chosen[index];
                     if (policy.IsProtected(current))
+                    {
+                        continue;
+                    }
+
+                    if (policy.PreserveKindPresence
+                        && chosen.Count(option => option.Option.kind == current.Option.kind) <= 1)
                     {
                         continue;
                     }
