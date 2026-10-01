@@ -2,7 +2,7 @@
 
 RimWorld 1.6 prototype for reducing oversized late-game raids without hidden combat stat buffs.
 
-Version 0.15 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, and mech cluster defenders. It post-processes vanilla PawnKind or cluster-sketch selection before Pawn generation and conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds. Human groups use at most two-to-one merges; mechanoids may use three-to-one promotion because of their wider model-cost gaps. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
+Version 0.16 handles hostile humanlike and mechanoid `Combat` raid groups, oversized manhunter packs, mech cluster defenders, and ordinary infestations. It conservatively replaces low-cost enemies with higher-cost Core or official-DLC pawn kinds without adding hidden stat modifiers. Human leaders, true breachers, single-use rocket carriers, existing mechanoid bosses, and mechanoid breachers are protected. PawnKinds that are merely sapper-capable are additionally protected when the resolved raid is actually a sapper or breach strategy.
 
 ## Implementation status
 
@@ -19,6 +19,7 @@ Implemented and runtime-covered:
 - Homogeneous pure-role mechanoid edge raids: two or three dynamically point-qualified waves, weak-tail merging, safe vanilla tactical drop-pod reinforcement, original-Lord membership, and live wait/attack-state inheritance.
 - Mech clusters: defender-only compression; structures, positions, materials, rotation, quality, hit points, and activation state remain untouched.
 - Manhunter packs: replacement only by a stronger vanilla species with compatible predator/herd/pack behavior, mobility, body size, armor, and special abilities.
+- Ordinary `Infestation`: all vanilla tunnel and hive objects remain. The mod evaluates the exact vanilla insect-selection rule for each tunnel, compresses the event-wide initial insect composition to 95–105% combat power, retains at least one of every selected insect kind, and distributes the stronger vanilla insects across the infestation area. Deep-drill, wastepack, quest, and scripted infestations are outside this handler.
 - Audit history: successful compression and protected/skipped decisions include threat classification and before/after evidence.
 
 Classified and deliberately protected, but not compressed yet:
@@ -30,11 +31,11 @@ Raid-family classification follows the resolved vanilla raid strategy and arriva
 
 Pirate phasing is intentionally narrower than pirate compression. It applies only to vanilla pirate factions whose resolved strategy is an ordinary direct assault and whose arrival is `EdgeWalkIn` or `EdgeDrop`. Siege, sapper, breach, center-drop, random-drop, grouped, distributed, and unknown special arrivals never enter the pirate wave controller. Common melee, ranged, heavy, explosive, area-denial, shield, and xenotype role groups are spread across qualified waves instead of being concentrated in one batch.
 
-Not implemented yet:
+Remaining planned work:
 
-- Dedicated mechanoid breach/boss-led handling and special mechanoid arrival modes beyond the currently safe promotion/protection rules.
-- Insect infestations and Anomaly-specific threats, which require event-specific lifecycle and objective rules.
-- Quest- or script-driven raids whose authored composition or timing must remain intact.
+- Anomaly mass threats that commonly create large pawn counts, especially shambler and fleshbeast swarms. Each family will receive its own lifecycle-aware policy.
+
+Deliberately outside the current performance scope are player-summoned mech bosses, already-small special threats, and quest/script-authored raids or infestations. Their authored composition and timing stay vanilla.
 
 Before a large ordinary mechanoid raid is changed, a classifier identifies scyther swarms, militor swarms, centipede formations, other role-dominant swarms, mixed forces, breach forces, and boss-led forces. A 100% single-role force may use phased reinforcement only when the vanilla arrival mode is `EdgeWalkIn` or `EdgeDrop` and its generated pawn count exceeds the configurable split threshold. The planner creates no more than three waves, then requires every wave to reach the higher of the fixed point floor and a configurable percentage of the already-adjusted vanilla raid budget. If three waves cannot all qualify, it merges and rebalances them into two; if two qualified batches are impossible, the raid stays whole.
 
@@ -46,7 +47,9 @@ Every replacement targets 95–105% of the vanilla composition's actual PawnKind
 
 Manhunter replacements must match the original species' predator, herd, and pack behavior and stay within strict limits for combat-power jump, movement speed, body size, armor, and special abilities. Their count is based on the original pack's actual capped value—not unspent incident budget. A fast predator can therefore no longer become a slow animal tank merely because their point totals match.
 
-Mech cluster compression runs only after `MechClusterGenerator` finishes the vanilla sketch and only replaces entries in its defender list. The building sketch, turrets, shields, problem causers, walls, dormancy/activation state, and all surviving or replacement defender positions remain vanilla. A deterministic A/B runtime test generates the same cluster with compression disabled and enabled and compares every building's definition, material, position, rotation, quality, and hit points. Insect and Anomaly handlers remain deferred until their event-specific rules are implemented.
+Mech cluster compression runs only after `MechClusterGenerator` finishes the vanilla sketch and only replaces entries in its defender list. The building sketch, turrets, shields, problem causers, walls, dormancy/activation state, and all surviving or replacement defender positions remain vanilla. A deterministic A/B runtime test generates the same cluster with compression disabled and enabled and compares every building's definition, material, position, rotation, quality, and hit points.
+
+Ordinary infestation compression plans the whole event rather than treating each tunnel independently. This matters because a standard high-point infestation can create many tunnels that each carry only one low-value initial insect. The planner preserves all tunnels and hives, spreads the reduced force over the original infestation footprint, keeps every vanilla-selected insect caste, and leaves later hive reproduction to vanilla. Only the initial combat wave is compressed.
 
 The mod settings include a session-local **compression history** page. It records successful compressions and safe fallbacks, with threat source, counts, actual PawnKind cost, retained percentage, event budget, game tick, full before/after composition, and a tactical-identity proof. This audit history is deliberately not written to the save.
 
@@ -94,5 +97,6 @@ The RimWorld 1.6 runtime suite currently covers four threat families and opens t
 - Manhunter pack: 100 cougars to 75 wargs, retaining 12,000 of 12,000 actual vanilla PawnKind points (100%) with compatible behavior, speed, size, armor, and abilities.
 - Mech cluster A/B sketch: 21 to 18 defenders, retaining 3,615 of 3,670 points (98.5%) while all 74 buildings and the activation state remain field-for-field identical in the deterministic signature.
 - Real mech-cluster incident: 21 to 20 defenders, retaining 4,285 of 4,315 points (99.3%) and spawning successfully.
+- Ordinary infestation: 62 vanilla tunnels and 62 hives remain unchanged while the initial force falls from 62 insects to 17 stronger vanilla insects; the targeted runtime scenario verifies 95–105% combat-power retention and complete before/after telemetry.
 
-All scenarios assert a real count reduction, 95–105% cost retention, tactical-identity proof, detailed before/after telemetry, and no scenario errors. Dedicated scenarios prove that scyther swarms, mixed forces, breach forces, and boss-led forces receive distinct safe treatment decisions; only edge-walk and edge-drop pure-role swarms are wave-eligible; and a deferred wave releases automatically from the resolved vanilla edge region. The animal scenario additionally proves that its selected replacement is profile-compatible and explicitly rejects the incompatible mastodon tank. The human scenario opens and renders the history window and verifies it remains present in the game's window stack.
+The established 17-scenario suite covers the earlier threat families. The new ordinary-infestation scenario was run separately to avoid repeating the broad matrix: it passed in RimWorld 1.6 after 1,800 simulated ticks, including count reduction, 95–105% cost retention, tactical-identity proof, detailed telemetry, and exact tunnel/hive preservation. Dedicated scenarios prove that scyther swarms, mixed forces, breach forces, and boss-led forces receive distinct safe treatment decisions; only edge-walk and edge-drop pure-role swarms are wave-eligible; and a deferred wave releases automatically from the resolved vanilla edge region.

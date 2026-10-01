@@ -16,6 +16,8 @@
   <IRC_EnableManhunterPacksDesc>Only uses a stronger vanilla animal with compatible behavior, speed, body size, armor, and abilities. Keeps the vanilla pack when none exists. No stat buffs are added.</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>Compress mech cluster defenders</IRC_EnableMechClusters>
   <IRC_EnableMechClustersDesc>Only compresses same-role mechanoids in the cluster sketch. Buildings, turrets, shields, problem causers, activation, and positions remain vanilla.</IRC_EnableMechClustersDesc>
+  <IRC_EnableInfestations>Compress oversized ordinary infestations</IRC_EnableInfestations>
+  <IRC_EnableInfestationsDesc>Only affects the initial insects from the standard Infestation incident. Tunnels, hives, emergence positions, caste presence, and vanilla assault AI remain unchanged.</IRC_EnableInfestationsDesc>
   <IRC_MinRaidPoints>Minimum raid points: {0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>Human soft pawn cap: {0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>Pirate split threshold: more than {0} pawns</IRC_PirateWaveSplitCount>
@@ -33,6 +35,8 @@
   <IRC_MinManhunterPoints>Minimum manhunter points: {0}</IRC_MinManhunterPoints>
   <IRC_MechClusterSoftPawnCap>Mech cluster soft pawn cap: {0}</IRC_MechClusterSoftPawnCap>
   <IRC_MinMechClusterPoints>Minimum mech cluster points: {0}</IRC_MinMechClusterPoints>
+  <IRC_InfestationSoftPawnCap>Ordinary infestation soft pawn cap: {0}</IRC_InfestationSoftPawnCap>
+  <IRC_MinInfestationPoints>Minimum ordinary infestation points: {0}</IRC_MinInfestationPoints>
   <IRC_VerboseLogging>Verbose compression logging</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>Writes the original and compressed pawn counts and costs to the game log.</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>Open compression history</IRC_OpenHistory>
@@ -86,6 +90,10 @@
   <IRC_IdentityDropArrivalPreserved>The resolved vanilla center/scattered drop worker and landing logic remain unchanged. Protected units remain exact and at least 80% of the original pawn count is retained to preserve immediate drop-assault density.</IRC_IdentityDropArrivalPreserved>
   <IRC_IdentityMultiFrontArrivalPreserved>The resolved vanilla grouped/distributed arrival worker still selects every approach direction and group position. Protected units remain exact and at least 90% of the original pawn count is retained to preserve pressure on each front.</IRC_IdentityMultiFrontArrivalPreserved>
   <IRC_IdentityTribalPromotionPreserved>Compression used only higher-tier PawnKinds already present in this tribal faction's active vanilla group maker. Tribal technology, xenotype, melee/ranged roles, faction leaders, true breachers, and single-use weapons remain preserved.</IRC_IdentityTribalPromotionPreserved>
+  <IRC_OrdinaryInfestation>Ordinary infestation</IRC_OrdinaryInfestation>
+  <IRC_InfestationClassificationSummary>Standard Infestation initial emergence; deep-drill, wastepack, quest, and scripted infestations are excluded.</IRC_InfestationClassificationSummary>
+  <IRC_IdentityInfestationPreserved>Every insect caste selected by vanilla remains represented. Only duplicate caste members were consolidated into stronger insects from the same vanilla hive pool; tunnels, hives, locations, and assault AI remain vanilla.</IRC_IdentityInfestationPreserved>
+  <IRC_ReasonNoInsectMerge>The generated hive batches had no legal lower-count combination that preserved every selected caste and 95–105% combat power.</IRC_ReasonNoInsectMerge>
   <IRC_IdentityAnimalPreserved>Same animal behavior; move speed {0}→{1}, body size {2}→{3}, with compatible armor and abilities.</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>No replacement was made, so the complete vanilla threat composition was preserved.</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>No promotion in the active vanilla group satisfies the role, cost, and count restrictions.</IRC_ReasonNoPromotion>

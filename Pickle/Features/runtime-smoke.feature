@@ -1,5 +1,17 @@
 Feature: Immersive Raid Compression runtime smoke
 
+  Scenario: a large ordinary infestation compresses insects without changing its tunnels
+    Given the save "test-colony" is loaded
+    And raid compression telemetry is reset
+    When an ordinary infestation fires with 30000 points
+    And I wait 1800 ticks
+    Then the last compression handled a "infestation"
+    And the last raid compression reduced the pawn count and retained between 95 and 105 percent of vanilla kind cost
+    And compression history contains detailed before and after compositions
+    And the last compression preserved its tactical identity
+    And the ordinary infestation kept every vanilla tunnel and hive
+    And no errors were logged
+
   Scenario: a high-point raid generates without errors
     Given the save "test-colony" is loaded
     And raid compression telemetry is reset

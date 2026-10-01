@@ -34,6 +34,8 @@ namespace ImmersiveRaidCompression.PickleTests
         private int phasedPirateDeferredBeforeRelease;
         private Lord phasedPirateOriginalLord;
         private Faction phasedPirateFaction;
+        private int ordinaryInfestationTunnelCount;
+        private int ordinaryInfestationHiveCountBefore;
 
         [Given("raid compression telemetry is reset")]
         public void ResetTelemetry(PickleContext context)
@@ -64,6 +66,49 @@ namespace ImmersiveRaidCompression.PickleTests
             CompressionMod.Settings.mechWaveBudgetFraction = 0.15f;
             CompressionMod.Settings.mechWaveTriggerFraction = 0.65f;
             CompressionMod.Settings.mechWaveMinimumDelayTicks = 180;
+            CompressionMod.Settings.enableInfestations = true;
+            CompressionMod.Settings.minimumInfestationPoints = 1000f;
+            CompressionMod.Settings.infestationSoftPawnCap = 8;
+        }
+
+        [When("an ordinary infestation fires with {int} points")]
+        public void OrdinaryInfestationFires(PickleContext context, int points)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+
+            ordinaryInfestationHiveCountBefore = map.listerThings.ThingsOfDef(ThingDefOf.Hive).Count;
+            HashSet<int> existingTunnels = map.listerThings.AllThings
+                .OfType<TunnelHiveSpawner>()
+                .Select(tunnel => tunnel.thingIDNumber)
+                .ToHashSet();
+
+            IncidentDef incident = DefDatabase<IncidentDef>.GetNamed("Infestation");
+            IncidentParms parms = StorytellerUtility.DefaultParmsNow(incident.category, map);
+            parms.points = points;
+            parms.forced = true;
+
+            bool fired = incident.Worker.TryExecute(parms);
+            context.Assert(fired, "The forced ordinary infestation declined to fire.");
+            ordinaryInfestationTunnelCount = map.listerThings.AllThings
+                .OfType<TunnelHiveSpawner>()
+                .Count(tunnel => !existingTunnels.Contains(tunnel.thingIDNumber));
+            context.Assert(
+                ordinaryInfestationTunnelCount > 0,
+                "The ordinary infestation created no vanilla tunnel spawners.");
+        }
+
+        [Then("the ordinary infestation kept every vanilla tunnel and hive")]
+        public void OrdinaryInfestationKeptVanillaStructure(PickleContext context)
+        {
+            Map map = Find.CurrentMap;
+            context.Assert(map != null, "No current map is loaded.");
+            int newHiveCount = map.listerThings.ThingsOfDef(ThingDefOf.Hive).Count
+                - ordinaryInfestationHiveCountBefore;
+            context.Assert(
+                newHiveCount == ordinaryInfestationTunnelCount,
+                "Expected " + ordinaryInfestationTunnelCount + " vanilla hives but found "
+                + newHiveCount + ".");
         }
 
         [When("an ordinary human edge raid fires with {int} points")]

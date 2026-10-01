@@ -16,6 +16,8 @@
   <IRC_EnableManhunterPacksDesc>只允许使用行为、速度、体型、护甲和特殊能力相近的高价值原版动物；没有兼容候选时保持原版。不添加属性 Buff。</IRC_EnableManhunterPacksDesc>
   <IRC_EnableMechClusters>压缩机械集群中的机械体</IRC_EnableMechClusters>
   <IRC_EnableMechClustersDesc>只压缩集群草图中的同职责机械体；建筑、炮塔、护盾、问题建筑、唤醒方式和落点完全保持原版。</IRC_EnableMechClustersDesc>
+  <IRC_EnableInfestations>压缩规模过大的普通虫族感染</IRC_EnableInfestations>
+  <IRC_EnableInfestationsDesc>只处理标准“虫族感染”事件初次出现的虫群；隧道、虫巢、钻出位置、虫阶存在性和原版进攻 AI 均保持不变。</IRC_EnableInfestationsDesc>
   <IRC_MinRaidPoints>最低生效袭击点数：{0}</IRC_MinRaidPoints>
   <IRC_HumanSoftPawnCap>人类单位软上限：{0}</IRC_HumanSoftPawnCap>
   <IRC_PirateWaveSplitCount>海盗分批门槛：超过 {0} 人</IRC_PirateWaveSplitCount>
@@ -33,6 +35,8 @@
   <IRC_MinManhunterPoints>食人动物最低生效点数：{0}</IRC_MinManhunterPoints>
   <IRC_MechClusterSoftPawnCap>机械集群单位软上限：{0}</IRC_MechClusterSoftPawnCap>
   <IRC_MinMechClusterPoints>机械集群最低生效点数：{0}</IRC_MinMechClusterPoints>
+  <IRC_InfestationSoftPawnCap>普通感染虫群软人数上限：{0}</IRC_InfestationSoftPawnCap>
+  <IRC_MinInfestationPoints>普通感染最低生效点数：{0}</IRC_MinInfestationPoints>
   <IRC_VerboseLogging>输出详细压缩日志</IRC_VerboseLogging>
   <IRC_VerboseLoggingDesc>在游戏日志中记录压缩前后的人数和兵种点数。</IRC_VerboseLoggingDesc>
   <IRC_OpenHistory>打开袭击压缩记录</IRC_OpenHistory>
@@ -86,6 +90,10 @@
   <IRC_IdentityDropArrivalPreserved>继续使用已经解析的原版中心/分散空投 Worker 与落点逻辑；受保护单位逐个保持不变，并至少保留原人数的 80%，维持空投落地时的即时兵力密度。</IRC_IdentityDropArrivalPreserved>
   <IRC_IdentityMultiFrontArrivalPreserved>继续由已经解析的原版分组/分散入场 Worker 选择各进攻方向和编队位置；受保护单位逐个保持不变，并至少保留原人数的 90%，维持每条战线的压力。</IRC_IdentityMultiFrontArrivalPreserved>
   <IRC_IdentityTribalPromotionPreserved>只使用当前部落派系活动原版编队生成器中已有的高阶 PawnKind；部落科技水平、异种类型、近战/远程职责、派系首领、真正破墙单位及一次性武器均保持不变。</IRC_IdentityTribalPromotionPreserved>
+  <IRC_OrdinaryInfestation>普通虫族感染</IRC_OrdinaryInfestation>
+  <IRC_InfestationClassificationSummary>仅处理标准“虫族感染”的初次钻出；深钻、污染物、任务及脚本感染均排除。</IRC_InfestationClassificationSummary>
+  <IRC_IdentityInfestationPreserved>原版实际选中的每种虫阶都至少保留一只；只把重复虫阶合并为同一原版虫巢池中的高阶虫族，隧道、虫巢、位置和进攻 AI 保持原版。</IRC_IdentityInfestationPreserved>
+  <IRC_ReasonNoInsectMerge>当前虫巢批次没有同时满足保留全部已选虫阶、降低数量及维持 95–105% 战力的合法组合。</IRC_ReasonNoInsectMerge>
   <IRC_IdentityAnimalPreserved>动物行为类型一致；移动速度 {0}→{1}，体型 {2}→{3}，护甲与特殊能力通过检查。</IRC_IdentityAnimalPreserved>
   <IRC_IdentityKeptVanilla>未执行替换，完整保留原版威胁构成。</IRC_IdentityKeptVanilla>
   <IRC_ReasonNoPromotion>当前原版编队中没有满足职责、价格和数量限制的晋升方案。</IRC_ReasonNoPromotion>
